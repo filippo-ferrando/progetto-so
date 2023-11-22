@@ -1,2 +1,2 @@
 # progetto-so
-Progetto di Sisremi Operativi
+Progetto di Sistemi Operativi
