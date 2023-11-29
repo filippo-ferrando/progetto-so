@@ -1,16 +1,44 @@
 \documentclass{article}
 
 \usepackage[italian]{babel}
-
-\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{listings}
+\usepackage[letterpaper,top=1cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{xcolor}
 
 % Useful package
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.90,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 \title{Relazione Progetto Sistemi Operativi}
 \author{Ferrando Damillano Filippo, Graziano Antonio, Nicosia Francesco}
+\date{Gennaio 2024}
 
 \begin{document}
 \maketitle
@@ -25,22 +53,42 @@
     \item Turno: T1    
     \item Email: \href{mailto:filippo.ferrandodami@edu.unito.it}{filippo.ferrandodami@edu.unito.it}
 \end{itemize}
-
-\textbf{Graziano Antonio}
-\begin{itemize}
-    \item Matricola:
-    \item Turno: T2
-    \item Email: \href{mailto:antonio.graziano@edu.unito.it}{antonio.graziano@edu.unito.it}     
-\end{itemize}
-
 \textbf{Nicosia Francesco}
 \begin{itemize}
-    \item Matricola: 
-    \item Turno: T
+    \item Matricola: 1030308
+    \item Turno: T4
     \item Email: \href{mailto:francesco.nicosia@edu.unito.it}{francesco.nicosia@edu.unito.it}
 \end{itemize}
 
 \section{Presentazione del Progetto}
+Spiegazione generale del problema
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+int main(int argc, char* argv[]){
+    char* string = "123";
+
+}
+\end{lstlisting}
+
+\section{Settaggio Variabili per l'Esecuzione}
+
+\section{Processo Master}
+
+\section{Processo Atomo}
+
+\section{Processo Alimentatore}
+
+\section{Processo Attivatore}
+
+\section{Processo Inibitore}
+
+
+\section{Soluzione Attuata}
+Soluzione finale utilizzata
+
+\section{Note Finali}
+
 
 \section{Link al Progetto}
     \begin{itemize}
