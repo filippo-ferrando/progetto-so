@@ -15,7 +15,6 @@ Ogni processo atomo contiene il numero atomico: fissato che generato dall'alimen
 ## Alimentatore
 Alimentatore ad inizio simulazione crea n-atomi definiti dalla variabile in env o da file
 Alimentatore ogni x tempo genera n atomi
-Alimentatore deve poter essere stoppato da Inibitore (o rallentato) se il numero di atomi running è eccessivo (meltdown)
 
 ## Attivatore
 Attivatore decide quali atomi devono scindersi (criterio da decidere)
@@ -23,7 +22,7 @@ Attivatore entra in funzione ogni x tempo e scinde n atomi
 Attivatore deve poter essere stoppato da Inibitore (o rallentato) se l'energia liberata dalla scissione è eccessiva (explode)
 
 ## Inibitore
-Inibitore riceve da master un segnale; in base al segnale ricevuto decide quale dei processi è da rallentare (Attivatore o Alimentatore)
+Inibitore riceve da master un segnale; stoppa il processo attivatore
 Inibitore deve poter essere stoppato e riattivato MENTRE il programma è in esecuzione
 Inibitore è una sorta di handler di segnali
 
@@ -31,7 +30,7 @@ Inibitore è una sorta di handler di segnali
 
 ### da dove le leggiamo
 Le opzioni sono:
-- Settare tutto quello che ci viene dato come variabile d'ambiente 
+- Settare tutto quello che ci viene dato come variabile d'ambiente (tramite bash script)
 - Leggere da un file preposto
 
 ## Variabili
@@ -49,3 +48,14 @@ Le opzioni sono:
     Durata della simulazione
 - **ENERGY_EXPLODE_THRESHOLD**
     Energia massima che può essere liberata prima del verificarsi di explode
+
+## Casistiche di Terminazione
+
+- **timeout**
+    La simulazione termina in modo "naturale" allo scadere tel tempo massimo definito in SIM_DURATION
+- **explode**
+    La simulazione termina a causa della troppa energia liberata (energia liberata > ENERGY_EXPLODE_THRESHOLD)
+- **blackout**
+    La simulazione termina a causa della troppa energia consumata
+- **meltdown**
+    La simulazione termina a causa delle troppe fork compiute per scindere/creare gli atomi
