@@ -27,3 +27,25 @@ Inibitore riceve da master un segnale; in base al segnale ricevuto decide quale 
 Inibitore deve poter essere stoppato e riattivato MENTRE il programma è in esecuzione
 Inibitore è una sorta di handler di segnali
 
+# Bozza descrizione variabili di esecuzione
+
+### da dove le leggiamo
+Le opzioni sono:
+- Settare tutto quello che ci viene dato come variabile d'ambiente 
+- Leggere da un file preposto
+
+## Variabili
+- **ENERGY_DEMAND**
+    Energia prelevata volta per volta dal processo master
+- **N_ATOM_INIT**
+    Numero di atomi da creare all'inizio della simulazione
+- **N_ATOM_MAX**
+    Numero atomico massimo che può avere ogni singolo atomo
+- **MIN_N_ATOMICO**
+    Numero atomico minimo che può avere ogni singolo atomo (più piccolo viene eliminato)
+- **N_NUOVI_ATOMI**
+    Numero di atomi che Alimentatore crea ogni n tempo
+- **SIM_DURATION**
+    Durata della simulazione
+- **ENERGY_EXPLODE_THRESHOLD**
+    Energia massima che può essere liberata prima del verificarsi di explode
