@@ -3,6 +3,7 @@
 ## Master
 - Master inizializzia (execve) gli altri processi che andranno in running nella prima fase di esecuzione
 - Master tiene traccia delle "statistiche" della simulazione
+- Master crea N_ATOMI_INIT istanze di Atomo
 - Master sarà preposto a "segnalare" all'handler (inibitore) il mometo in cui stoppare alimetatore (troppi atomi running) o stoppare la scissione (troppa energia rilasciata) 
 - Master ogni secondo stamperà le statistiche del programma in esecuzione
 - Master ogni x tempo preleva n energia dal sistema
