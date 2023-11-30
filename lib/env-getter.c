@@ -1,6 +1,6 @@
-#include <stdlib.h>
+#include "header.h"
 
-int main(int argc, char* argv[]){
+void env_get(){
     printf("Env variable getter\n");
 
     int ENERGY_DEMAND = getenv("ENERGY_DEMAND");
