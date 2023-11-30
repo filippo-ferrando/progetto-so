@@ -1,5 +1,7 @@
 #include "lib/header.h"
 
+#define NUM_ATOMI 10
+
 int main(int argc, char* argv[]){
     
     
@@ -8,23 +10,23 @@ int main(int argc, char* argv[]){
         pid_t pid = fork();
         if(pid == 0){
             //processo atomo
-            execve();
+            //execve();
         }
     }
 
     //creazione processo attivatore
-    execve();
+    //execve();
 
     //creazione processo alimentatore
 
-    execve();
+    //execve();
 
     //crezione processo inibitore
-    execve();
+    //execve();
 
     //ciclo di stampa per status
 
-    while();
+    //while();
 
     //terminazione
     exit(0);
