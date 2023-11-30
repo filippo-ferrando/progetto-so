@@ -67,3 +67,19 @@ Le opzioni sono:
     La simulazione termina a causa della troppa energia consumata
 - **meltdown**
     La simulazione termina a causa delle troppe fork compiute per scindere/creare gli atomi
+
+## Problematiche
+
+- Come mantenere traccia nel numero atomico di tutti gli atomi presenti
+ -> array di struttura dati composta da ID -> pid processo e N-ATOMICO -> assegnato al momento della creazione | calcolato al momento della fork
+
+- Condividere le stastiche con tutti i processi per mantenere traccia dei cambiamenti
+ -> segmento di memoria condivisa con tutti i processi -> master stamperà i dati presenti
+
+- Far partire la simulazione solo nel momento in cui master ha inizializzato tutti i processi
+
+- far stampare a master le statistiche ogni secondo
+
+- Far mandare ad Attivatore il segnale SOLO a N atomi
+
+- 
