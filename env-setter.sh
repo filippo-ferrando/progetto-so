@@ -7,7 +7,7 @@ echo Setting necessary environment variables...
 export ENERGY_DEMAND=100
 echo Setting ENERGY_DEMAND to $ENERGY_DEMAND
 
-export N_ATOMI_INIT=100
+export N_ATOMI_INIT=10
 echo Setting N_ATOMI_INIT to $N_ATOMI_INIT
 
 export N_ATOM_MAX=20
@@ -27,3 +27,5 @@ echo Setting ENERGY_EXPLODE_THRESHOLD to $ENERGY_EXPLODE_THRESHOLD
 
 export STEP=2
 echo Setting STEP to $STEP
+
+exec $SHELL -i

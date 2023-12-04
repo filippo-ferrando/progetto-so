@@ -1,16 +1,42 @@
 #include "header.h"
 
-void env_get(){
-    printf("Env variable getter\n");
+char* env_get_ENERGY_DEMAND(){
+    char * ENERGY_DEMAND = getenv("ENERGY_DEMAND");
+    return ENERGY_DEMAND;
+}
+char* env_get_N_ATOMI_INIT(){
+    char* N_ATOMI_INIT = getenv("N_ATOMI_INIT");
+    return N_ATOMI_INIT;
+}
 
-    int ENERGY_DEMAND = getenv("ENERGY_DEMAND");
-    int N_ATOMI_INIT = getenv("N_ATOMI_INIT");
-    int N_ATOM_MAX = getenv("N_ATOM_MAX");
-    int MIN_N_ATOMICO = getenv("MIN_N_ATOMICO");
-    int N_NUOVI_ATOMI = getenv("N_NUOVI_ATOMI");
-    int SIM_DURATION = getenv("SIM_DURATION");
-    int ENERGY_EXPLODE_THRESHOLD = getenv("ENERGY_EXPLODE_THRESHOLD");
+char* env_get_N_ATOM_MAX(){
+    char* N_ATOM_MAX = getenv("N_ATOM_MAX");
+    return N_ATOM_MAX;
+}
 
+char* env_get_MIN_N_ATOMICO(){
+    char* MIN_N_ATOMICO = getenv("MIN_N_ATOMICO");
+    return MIN_N_ATOMICO;
+}
+
+char* env_get_N_NUOVI_ATOMI(){
+    char* N_NUOVI_ATOMI = getenv("N_NUOVI_ATOMI");
+    return N_NUOVI_ATOMI;
+}
+
+char* env_get_SIM_DURATON(){
+    char* SIM_DURATION = getenv("SIM_DURATION");
+    return SIM_DURATION;
+}
+
+char* env_get_ENERGY_EXPLODE_THRESHOLD(){
+    char* ENERGY_EXPLODE_THRESHOLD = getenv("ENERGY_EXPLODE_THRESHOLD");
+    return ENERGY_EXPLODE_THRESHOLD;
+}
+
+char* env_get_STEP(){
+    char* STEP = getenv("STEP");
+    return STEP;
 }
 
 int releaseSem(int semid){
@@ -21,11 +47,11 @@ int releaseSem(int semid){
     sops.sem_flg = 0;
 
     if(semop(semid, &sops, 1) < 0){
-        perror("semop: ");
+        perror("Semop: ");
         exit(1);
     }
 
-    printf("changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
+    //printf("Changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
 
     return 0;
 }
@@ -42,7 +68,9 @@ int reserveSem(int semid){
         exit(1);
     }
 
-    printf("changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
+    //printf("changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
 
     return 0;
 }
+
+
