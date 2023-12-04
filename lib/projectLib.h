@@ -39,10 +39,10 @@ char* env_get_STEP(){
     return STEP;
 }
 
-int releaseSem(int semid){
+int releaseSem(int semid, int n_sem){
     struct sembuf sops;
 
-    sops.sem_num = 0;
+    sops.sem_num = n_sem;
     sops.sem_op = 1;
     sops.sem_flg = 0;
 
@@ -56,10 +56,10 @@ int releaseSem(int semid){
     return 0;
 }
 
-int reserveSem(int semid){
+int reserveSem(int semid, int n_sem){
     struct sembuf sops;
 
-    sops.sem_num = 0;
+    sops.sem_num = n_sem;
     sops.sem_op = -1;
     sops.sem_flg = 0;
 
@@ -73,4 +73,15 @@ int reserveSem(int semid){
     return 0;
 }
 
+typedef struct stats {
+    int activations_ls;
+    int activations_total;
+    int split_ls;
+    int split_total;
+    int energy_created_ls;
+    int energy_created_total;
+    int energy_consumed_ls;
+    int energy_consumed_total;
+    int scrap;
+}stats;
 

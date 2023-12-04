@@ -9,3 +9,4 @@
 #include <sys/ipc.h>
 #include <sys/wait.h>
 #include <sys/sem.h>
+#include <sys/shm.h>
