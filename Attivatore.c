@@ -11,6 +11,6 @@ int main(){
 
     reserveSem(sem_start, 0);
     //printf("SEM VAL attivatore: %d\n", semctl(semid, 0, GETVAL));
-    //printf("SONO ATTIVATORE | HO PID %d\n", getpid());
+    printf("SONO ATTIVATORE | HO PID %d\n", getpid());
     exit(0);
 }

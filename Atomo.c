@@ -10,9 +10,11 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0666);
     st = shmat(shmid, NULL, 0);
 
-    if(reserveSem(sem_start, 0) < 0){
-        perror("reserveSem");
-        exit(1);
+    if(atoi(argv[2]) != -1){
+        if(reserveSem(sem_start, 0) < 0){
+            perror("reserveSem");
+            exit(1);
+        }
     }
 
     while(1){

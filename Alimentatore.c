@@ -11,13 +11,13 @@ int main(int argc, char* argv[]){
     int i = 0;
 
     char* buf = malloc(2);
-    char* argv_atomo[3] = {"./Atomo.out", buf, NULL};
+    char* argv_atomo[4] = {"./Atomo.out", buf, "-1",NULL};
 
     reserveSem(sem_start, 0);
 
     while(1){
         //printf("Alimentatore %d | creo %d atomi\n", getpid(), atoi(argv[1]));
-        //printf("ALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
+        printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
         for( i = 0; i < n_nuovi_atomi; i++ ) {
             n_atom_rand = rand() % n_atom_max + 1;
             sprintf(buf, "%d", n_atom_rand);
@@ -28,10 +28,7 @@ int main(int argc, char* argv[]){
                     perror("fork alimentatore: ");
                     exit(1);
                 case 0:
-                    if(semctl(sem_start, 0, SETVAL, 5) < 0){
-                        perror("semctl");
-                        exit(1);
-                    }
+                    
                     if(execve("./Atomo.out", argv_atomo, NULL) < 0){
                         perror("execve");
                         exit(1);

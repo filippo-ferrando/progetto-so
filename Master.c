@@ -1,6 +1,28 @@
 #include "lib/projectLib.h"
 #include "lib/key.h"
 
+int alarm_rt = 0;
+
+void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore, Alimentatore, Atomo e Attivatore
+    int i;
+    printf("Esco per Timeout\n");
+    char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
+    if(fork() == 0){
+        if(execve("/usr/bin/killall",proc_names,NULL) < 0){
+            perror("execve timeout: ");
+            exit(1);
+        }
+    }
+    exit(0);
+}
+
+void handle_usr1(int signal){
+
+}
+void handle_usr2(int signal){
+
+}
+
 int main(int argc, char* argv[]){
     char* ENERGY_DEMAND = env_get_ENERGY_DEMAND();
     char* N_ATOMI_INIT = env_get_N_ATOMI_INIT();
@@ -39,22 +61,18 @@ int main(int argc, char* argv[]){
     st->energy_consumed_total = 0;  //sem 7
     st->scrap = 0;                  //sem 8
 
-    /*
+    //Creazione Handler
     struct sigaction sa;
-    */
-    /*
     bzero(&sa, sizeof(sa));
-	sa.sa_handler = handle_signal;
+
+	sa.sa_handler = handle_alarm;
     sigaction(SIGALRM, &sa, NULL);
-    */
-    
-    //semafori gestione shared memory
 
-    //alarm per durata simulazione
+    sa.sa_handler = handle_usr1;
+    sigaction(SIGUSR1,&sa,NULL);
 
-    //ciclo infinito di stampa con sleep(1)
-
-
+    sa.sa_handler = handle_usr2;
+    sigaction(SIGUSR2,&sa,NULL);
     
 
     //ciclo creazione processi atomo
@@ -129,15 +147,75 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
-    sleep(100);
+    //sleep(100);
 
     if(semctl(sem_master_ready, 0, IPC_RMID, 0) < 0){
         perror("semctl");
         exit(1);
     }
 
-    //crezione processo inibitore
-    //execve();
+    releaseSem(sem_sm_ready, 0);
+    releaseSem(sem_sm_ready, 1);
+    releaseSem(sem_sm_ready, 2);
+    releaseSem(sem_sm_ready, 3);
+    releaseSem(sem_sm_ready, 4);
+    releaseSem(sem_sm_ready, 5);
+    releaseSem(sem_sm_ready, 6);
+    releaseSem(sem_sm_ready, 7);
+    releaseSem(sem_sm_ready, 8);
+
+    alarm(atoi(SIM_DURATION));
+    while(1){
+        printf("1");
+        //semfori sm
+        reserveSem(sem_sm_ready, 0);
+        reserveSem(sem_sm_ready, 1);
+        reserveSem(sem_sm_ready, 2);
+        reserveSem(sem_sm_ready, 3);
+        reserveSem(sem_sm_ready, 4);
+        reserveSem(sem_sm_ready, 5);
+        reserveSem(sem_sm_ready, 6);
+        reserveSem(sem_sm_ready, 7);
+        reserveSem(sem_sm_ready, 8);
+
+        printf("--------------------------------------------------\n");
+        printf("attivazioni totali: %d\n", st->activations_total);
+        printf("attivazioni last sec: %d\n\n", st->activations_ls);
+        printf("scissioni totali: %d\n", st->split_total);
+        printf("scissioni last sec: %d\n", st->split_ls);
+        printf("energia totale: %d\n", st->energy_created_total);
+        printf("energia creata last sec: %d\n", st->energy_created_ls);
+        printf("energia totale consumata: %d\n", st->energy_consumed_total);
+        printf("energia consumata last sec: %d\n", st->energy_consumed_ls);
+        printf("scarti: %d\n", st->scrap);
+        printf("--------------------------------------------------\n");
+
+        st->energy_consumed_ls = atoi(ENERGY_DEMAND);
+        st->energy_consumed_total = st->energy_consumed_total + st->energy_consumed_ls;
+        st->energy_created_total = st->energy_created_total + st->energy_created_ls - atoi(ENERGY_DEMAND);
+        st->activations_ls = 0;
+        st->split_ls = 0;
+        st->energy_created_ls = 0;
+
+        releaseSem(sem_sm_ready, 0);
+        releaseSem(sem_sm_ready, 1);
+        releaseSem(sem_sm_ready, 2);
+        releaseSem(sem_sm_ready, 3);
+        releaseSem(sem_sm_ready, 4);
+        releaseSem(sem_sm_ready, 5);
+        releaseSem(sem_sm_ready, 6);
+        releaseSem(sem_sm_ready, 7);
+        releaseSem(sem_sm_ready, 8);
+
+        
+
+        //semafori sm
+
+        sleep(1);
+
+
+
+    }
 
     //ciclo di stampa per status
     //while();
