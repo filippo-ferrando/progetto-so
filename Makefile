@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wvla -Wextra -Werror
+CFLAGS = -Wvla -Wextra -Werror -c -O0 -g
 
-.PHONY: clean
+.PHONY: clean run
 
 Master.out: Master.c Alimentatore.c Attivatore.c Atomo.c Inibitore.c
 	$(CC) $(CFLAGS) -o Atomo.out Atomo.c
@@ -12,3 +12,6 @@ Master.out: Master.c Alimentatore.c Attivatore.c Atomo.c Inibitore.c
 
 clean:
 	rm -f *.out
+
+run:
+	./Master.out
