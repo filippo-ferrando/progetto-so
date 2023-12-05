@@ -12,6 +12,14 @@ void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore,
             perror("execve timeout: ");
             exit(1);
         }
+        exit(0);
+    }
+    if(fork() == 0){
+        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+            perror("execve timeout: ");
+            exit(1);
+        }
+        exit(0);
     }
     exit(0);
 }
@@ -98,6 +106,7 @@ int main(int argc, char* argv[]){
         
         
     }
+    //###########################################
 
     //creazione processo alimentatore; Argomenti: STEP
     printf("Creo alimentatore\n");
@@ -139,7 +148,6 @@ int main(int argc, char* argv[]){
         
     }
 
-    sleep(1);
 
     printf("rilascio semaforo\n");
     if(semctl(sem_master_ready, 0, SETVAL, atoi(N_ATOMI_INIT)+2) < 0){
@@ -197,6 +205,7 @@ int main(int argc, char* argv[]){
         st->split_ls = 0;
         st->energy_created_ls = 0;
 
+        //release all semaphores
         releaseSem(sem_sm_ready, 0);
         releaseSem(sem_sm_ready, 1);
         releaseSem(sem_sm_ready, 2);
@@ -208,20 +217,8 @@ int main(int argc, char* argv[]){
         releaseSem(sem_sm_ready, 8);
 
         
-
-        //semafori sm
-
         sleep(1);
-
-
-
     }
-
-    //ciclo di stampa per status
-    //while();
-
     //terminazione
     exit(0);
-
-
 }
