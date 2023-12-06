@@ -5,18 +5,23 @@ int alarm_rt = 0;
 
 void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore, Alimentatore, Atomo e Attivatore
     int i;
+    struct timespec remaining, request;
+    remaining.tv_sec = 0;
+    remaining.tv_nsec = 500000000;
+
     printf("Esco per Timeout\n");
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
     if(fork() == 0){
         if(execve("/usr/bin/killall",proc_names,NULL) < 0){
-            perror("execve timeout: ");
+            perror("execve timeout killall: ");
             exit(1);
         }
         exit(0);
     }
+    nanosleep(&remaining, &request);
     if(fork() == 0){
         if(execve("./lib/killer.sh",NULL,NULL) < 0){
-            perror("execve timeout: ");
+            perror("execve timeout killer: ");
             exit(1);
         }
         exit(0);
@@ -25,10 +30,34 @@ void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore,
 }
 
 void handle_usr1(int signal){
+    //Explode | Blackout SIGNAL
+    int i;
+    struct timespec remaining, request;
+    remaining.tv_sec = 0;
+    remaining.tv_nsec = 500000000;
+
+    char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
+    if(fork() == 0){
+        if(execve("/usr/bin/killall",proc_names,NULL) < 0){
+            perror("execve timeout killall: ");
+            exit(1);
+        }
+        exit(0);
+    }
+    nanosleep(&remaining, &request);
+    if(fork() == 0){
+        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+            perror("execve timeout killer: ");
+            exit(1);
+        }
+        exit(0);
+    }
+    exit(0);
 
 }
-void handle_usr2(int signal){
 
+
+void handle_usr2(int signal){ //Probabilmente da cancellare
 }
 
 int main(int argc, char* argv[]){
@@ -40,14 +69,18 @@ int main(int argc, char* argv[]){
     char* SIM_DURATION = env_get_SIM_DURATON();
     char* ENERGY_EXPLODE_THRESHOLD = env_get_ENERGY_EXPLODE_THRESHOLD();
     char* STEP = env_get_STEP();
+    char* INIBIT_ATT = env_get_INIBIT_ATT();
+    char* INIBIT_CHECK = env_get_INIBIT_CHECK();
 
     struct stats *st;
 
     //semafori partenza simulazione
-    int sem_master_ready;
-
+    int sem_master_ready; 
     sem_master_ready = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
-    semctl(sem_master_ready, 0, SETVAL, 0);
+    if(semctl(sem_master_ready, 0, SETVAL, 0) < 0){
+        perror("semctl master ready");
+        exit(1);
+    }
 
     //semaforo shared memory
     int sem_sm_ready = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
@@ -79,14 +112,14 @@ int main(int argc, char* argv[]){
     sa.sa_handler = handle_usr1;
     sigaction(SIGUSR1,&sa,NULL);
 
-    sa.sa_handler = handle_usr2;
+    sa.sa_handler = handle_usr2; //Probabilmente da cancellare
     sigaction(SIGUSR2,&sa,NULL);
     
 
     //ciclo creazione processi atomo
     //char* argv_atomo[3];
     char* buf = malloc(2);
-    char* argv_atomo[3] = {"./Atomo.out", buf, NULL};
+    char* argv_atomo[5] = {"./Atomo.out", buf, "0", MIN_N_ATOMICO,NULL};
 
     int n_atom_rand;
     
@@ -97,9 +130,33 @@ int main(int argc, char* argv[]){
         
         strcpy(argv_atomo[1],buf);
         if(fork() == 0){
-            if(execve("./Atomo.out", argv_atomo, NULL) < 0){
-                perror("execve");
-                exit(1);
+            switch(execve("./Atomo.out", argv_atomo, NULL)){
+                case -1:
+                    perror("execve");
+                    exit(1);
+                    break;
+                case 6:
+                    printf("MELTDOWN\n");
+                    struct timespec remaining, request;
+                    remaining.tv_sec = 0;
+                    remaining.tv_nsec = 500000000; 
+                    char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
+                    if(fork() == 0){
+                        if(execve("/usr/bin/killall",proc_names,NULL) < 0){
+                            perror("execve timeout killall: ");
+                            exit(1);
+                        }
+                        exit(0);
+                    }
+                    nanosleep(&remaining, &request);
+                    if(fork() == 0){
+                        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+                            perror("execve timeout killer: ");
+                            exit(1);
+                        }
+                        exit(0);
+                    }
+            break;
             }
             break;
         }
@@ -137,9 +194,9 @@ int main(int argc, char* argv[]){
         
     }
 
-    //creazione processo inibitore; Argomenti: Nessuno
+    //creazione processo inibitore; Argomenti: INIBIT_ATT
     printf("Creo inibitore\n");
-    char* argv_inibitore[] = {"Inibitore",NULL};
+    char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
     if(fork() == 0){
         if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
             perror("execve");
@@ -150,17 +207,18 @@ int main(int argc, char* argv[]){
 
 
     printf("rilascio semaforo\n");
-    if(semctl(sem_master_ready, 0, SETVAL, atoi(N_ATOMI_INIT)+2) < 0){
+    if(semctl(sem_master_ready, 0, SETVAL, atoi(N_ATOMI_INIT)+3) < 0){
         perror("semctl");
         exit(1);
     }
 
     //sleep(100);
-
+    /*
     if(semctl(sem_master_ready, 0, IPC_RMID, 0) < 0){
         perror("semctl");
         exit(1);
     }
+    */
 
     releaseSem(sem_sm_ready, 0);
     releaseSem(sem_sm_ready, 1);
@@ -174,7 +232,6 @@ int main(int argc, char* argv[]){
 
     alarm(atoi(SIM_DURATION));
     while(1){
-        printf("1");
         //semfori sm
         reserveSem(sem_sm_ready, 0);
         reserveSem(sem_sm_ready, 1);
@@ -201,10 +258,22 @@ int main(int argc, char* argv[]){
         st->energy_consumed_ls = atoi(ENERGY_DEMAND);
         st->energy_consumed_total = st->energy_consumed_total + st->energy_consumed_ls;
         st->energy_created_total = st->energy_created_total + st->energy_created_ls - atoi(ENERGY_DEMAND);
+        st->activations_total = st->activations_total + st->activations_ls;
+        st->split_total = st->split_total + st->split_ls;
         st->activations_ls = 0;
         st->split_ls = 0;
         st->energy_created_ls = 0;
 
+        if(st->energy_created_total > atoi(ENERGY_EXPLODE_THRESHOLD)){   //explode, ho creato più energia che io riesca a gestire
+            printf("Esco per Explode");
+            kill(getpid(),SIGUSR1);
+        }
+        /*
+        if(st->energy_consumed_ls > st-> energy_created_total){ //blackout, la quantità di energia che voglio prelevare è minore di quella attuale
+            printf("Esco per Blackout");
+            kill(getpid(),SIGUSR1);
+        }
+        */
         //release all semaphores
         releaseSem(sem_sm_ready, 0);
         releaseSem(sem_sm_ready, 1);
@@ -215,7 +284,6 @@ int main(int argc, char* argv[]){
         releaseSem(sem_sm_ready, 6);
         releaseSem(sem_sm_ready, 7);
         releaseSem(sem_sm_ready, 8);
-
         
         sleep(1);
     }
