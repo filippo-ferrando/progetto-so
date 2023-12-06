@@ -8,18 +8,31 @@ int main(int argc, char* argv[]){
     int n_atom_rand = 0;
     int n_atom_max = atoi(argv[3]);
 
-    struct timespec remaining, request = {0, step};
+    struct timespec remaining, request;
+    remaining.tv_sec = 0;
+    printf("\nstep: %d\n", step);
+    remaining.tv_nsec = step;
+
 
     int i = 0;
 
     char* buf = malloc(2);
     char* argv_atomo[4] = {"./Atomo.out", buf, "-1",NULL};
 
-    reserveSem(sem_start, 0);
+    if(reserveSem(sem_start, 0) < 0){
+        perror("reserveSem alimentatore atomo: ");
+        exit(1);
+    }
 
     while(1){
         //printf("Alimentatore %d | creo %d atomi\n", getpid(), atoi(argv[1]));
-        //printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
+        printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
+
+        if(nanosleep(&remaining, &request) < 0){
+            perror("nanosleep alimentatore: ");
+            exit(1);
+        }
+        
         for( i = 0; i < n_nuovi_atomi; i++ ) {
             n_atom_rand = rand() % n_atom_max + 1;
             sprintf(buf, "%d", n_atom_rand);
@@ -40,10 +53,7 @@ int main(int argc, char* argv[]){
                     continue;
             }
         }
-        if(nanosleep(&request, &remaining) < 0){
-            perror("nanosleep alimentatore: ");
-            exit(1);
-        }
+        
     }
     
     free(buf);
