@@ -67,17 +67,20 @@
 \end{itemize}
 
 \section{Presentazione del Progetto}
-Spiegazione generale del problema
+Il Progetto presentato nell'anno 23/24 richiede la simulazione di una reazione a catena di atomi.
+Questa reazione a catena è gestita attraverso l'utilizzo di processi differenti per alimentare e allo stesso tempo mantenere sotto controllo la reazione (questi processi verranno visti in dettaglio nelle sezioni successive).
 
-\begin{lstlisting}[language=C]
-#include <stdio.h>
-int main(int argc, char* argv[]){
-    char* string = "123";
-
-}
-\end{lstlisting}
 
 \section{Settaggio Variabili per l'Esecuzione}
+Per il corretto utilizzo della simulazione, questa ha bisogno di alcune variabili che sono definite dall'utente prima della partenza della stessa.
+Il metodo che abbiamo scelto sfrutta le variabili d'ambiente di Linux, abbiamo infatti untilizzato lo script
+\begin{lstlisting}
+    env-setter.sh
+\end{lstlisting}
+per definire tutte le variabili necessarie, queste sono raggiunte dal processo Master attraverso la chiama alla funzione
+\begin{lstlisting}
+    getenv()
+\end{lstlisting}
 
 \section{Processo Master}
 
