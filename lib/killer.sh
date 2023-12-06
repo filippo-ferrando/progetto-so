@@ -2,12 +2,13 @@
 
 # assure that all the process are killed
 
-echo Killing all remaining process...
+echo $'Killing all remaining process...'
 
-killall -9 Atomo.out 1>&2
-killall -9 Alimentatore.out 1>&2
-killall -9 Attivatore.out 1>&2
-killall -9 Inibitore.out 1>&2
-killall -9 Master.out 1>&2
+killall -9 Atomo.out > /dev/null 2>&1
+killall -9 Alimentatore.out > /dev/null 2>&1
+killall -9 Attivatore.out > /dev/null 2>&1
+killall -9 Inibitore.out > /dev/null 2>&1
+killall -9 Master.out > /dev/null 2>&1
 
-echo Done.
+echo $'Done.\n'
+exit 0
