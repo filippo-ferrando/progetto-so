@@ -8,6 +8,10 @@ char* env_get_N_ATOMI_INIT(){
     char* N_ATOMI_INIT = getenv("N_ATOMI_INIT");
     return N_ATOMI_INIT;
 }
+char* env_get_INIBIT_ATT(){
+    char* INIBIT_ATT = getenv("INIBIT_ATT");
+    return INIBIT_ATT;
+}
 
 char* env_get_N_ATOM_MAX(){
     char* N_ATOM_MAX = getenv("N_ATOM_MAX");
