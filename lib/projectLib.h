@@ -13,6 +13,11 @@ char* env_get_INIBIT_ATT(){
     return INIBIT_ATT;
 }
 
+char* env_get_INIBIT_CHECK(){
+    char* INIBIT_CHECK = getenv("INIBIT_CHECK");
+    return INIBIT_CHECK;
+}
+
 char* env_get_N_ATOM_MAX(){
     char* N_ATOM_MAX = getenv("N_ATOM_MAX");
     return N_ATOM_MAX;
@@ -52,7 +57,7 @@ int releaseSem(int semid, int n_sem){
 
     if(semop(semid, &sops, 1) < 0){
         perror("Semop: ");
-        exit(1);
+        return -1;
     }
 
     //printf("Changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
@@ -69,7 +74,7 @@ int reserveSem(int semid, int n_sem){
 
     if(semop(semid, &sops, 1) < 0){
         perror("semop: ");
-        exit(1);
+        return -1;
     }
 
     //printf("changed sem val to -> semctl: %d\n", semctl(semid, 0, GETVAL, 0));
