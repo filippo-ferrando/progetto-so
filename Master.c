@@ -72,11 +72,15 @@ int main(int argc, char* argv[]){
     char* INIBIT_ATT = env_get_INIBIT_ATT();
     char* INIBIT_CHECK = env_get_INIBIT_CHECK();
 
+    FILE *ipcs_id = fopen("./ipcs_id_sem.txt","a");
+    FILE *ipcs_id2 = fopen("./ipcs_id_mem.txt","a");
+
     struct stats *st;
 
     //semafori partenza simulazione
     int sem_master_ready; 
     sem_master_ready = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
+    fprintf(ipcs_id, "%d\n", sem_master_ready);
     if(semctl(sem_master_ready, 0, SETVAL, 0) < 0){
         perror("semctl master ready");
         exit(1);
@@ -84,13 +88,17 @@ int main(int argc, char* argv[]){
 
     //semaforo shared memory
     int sem_sm_ready = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
+    fprintf(ipcs_id, "%d\n", sem_sm_ready);
     for(int i=0; i<9; i++){
         semctl(sem_sm_ready, i, SETVAL, 0);
     }
     
     //shared memory
     int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
+    fprintf(ipcs_id2, "%d\n", shmid);
     st = shmat(shmid, NULL, 0);
+
+    fclose(ipcs_id);
 
     st->activations_ls = 0;         //sem 0
     st->activations_total = 0;      //sem 1
@@ -136,7 +144,7 @@ int main(int argc, char* argv[]){
                     exit(1);
                     break;
                 case 6:
-                    printf("MELTDOWN\n");
+                    printf("MELTDOWN DA ATOMO\n");
                     struct timespec remaining, request;
                     remaining.tv_sec = 0;
                     remaining.tv_nsec = 500000000; 
@@ -173,9 +181,31 @@ int main(int argc, char* argv[]){
             perror("fork");
             exit(1);
         case 0:
-            if(execve("./Alimentatore.out",argv_alimentatore,NULL) < 0){
-                perror("execve");
-                exit(1);
+            switch(execve("./Alimentatore.out",argv_alimentatore,NULL)){
+                case -1:
+                    perror("execve");
+                    exit(1);
+                case 6:
+                    printf("MELTDOWN da ALIMENTATORE\n");
+                    struct timespec remaining, request;
+                    remaining.tv_sec = 0;
+                    remaining.tv_nsec = 500000000; 
+                    char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
+                    if(fork() == 0){
+                        if(execve("/usr/bin/killall",proc_names,NULL) < 0){
+                            perror("execve timeout killall: ");
+                            exit(1);
+                        }
+                        exit(0);
+                    }
+                    nanosleep(&remaining, &request);
+                    if(fork() == 0){
+                        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+                            perror("execve timeout killer: ");
+                            exit(1);
+                        }
+                        exit(0);
+                    }
             }
             break;
         default:
