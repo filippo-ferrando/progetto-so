@@ -2,19 +2,28 @@
 #include "lib/key.h"
 
 int main(int argc, char* argv[]){
-    int sem_start = semget(KEY_SEM_ACT, 1, 0666); //Semaforo per sincronizzare
-    int sem_sm = semget(KEY_SEM_SM, 9, 0666); //Semaforo per accesso a variabili da stampare
-    int sem_att = semget(KEY_ATT, 1, 0666); //Semaforo per accesso a variabili da stampare
+    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666); //Semaforo per sincronizzare
+    int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
+    int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
+
+    FILE *ipcs_id = fopen("ipcs_id_sem.txt", "a");
+    fprintf(ipcs_id, "%d\n", sem_att);
+    fclose(ipcs_id);
+
     int n_atomico = atoi(argv[1]);
+    int energia_rilasciata = 7;
     int min_n_atomico = atoi(argv[3]);
 
     //printf("invocato\n");
     struct stats *st;
-    int shmid = shmget(KEY_SHM, sizeof(st), 0666);
+    int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
     st = shmat(shmid, NULL, 0);
 
     if(atoi(argv[2]) != -1){
-        reserveSem(sem_start, 0);
+        if(reserveSem(sem_start, 0) < 0){
+            perror("reserveSem attivatore atomo: ");
+            exit(1);
+        }
     }
 
     while(1){
@@ -86,7 +95,7 @@ int main(int argc, char* argv[]){
                 }
                 //printf("atomo figlio %d in senzione critica\n", getpid());
                 st->split_ls++;
-                st->energy_created_ls = st->energy_created_ls + 7;
+                st->energy_created_ls += energia_rilasciata;
 
                 //esco sezione critica di sm
                 if(releaseSem(sem_sm, 2) < 0){
