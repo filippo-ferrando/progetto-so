@@ -38,7 +38,6 @@ int main(int argc, char* argv[]){
             exit(1);
         }
         //printf("qua\n");
-
         //calcolo numero atomico
         n_atomico = n_atomico / 2;
 
@@ -56,13 +55,12 @@ int main(int argc, char* argv[]){
             }
             exit(0);
         }
-
         //forko
         switch(fork()){
             case -1:
                 perror("fork atomo: ");
                 //segnale di meltdown
-                exit(6);
+                exit(1);
             case 0:
                 //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++
                 //printf("atomo figlio %d creato\n", getpid());

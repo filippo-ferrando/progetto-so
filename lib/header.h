@@ -11,3 +11,4 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <time.h>
+#include <errno.h>
