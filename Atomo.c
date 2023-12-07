@@ -6,10 +6,6 @@ int main(int argc, char* argv[]){
     int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
 
-    FILE *ipcs_id = fopen("ipcs_id_sem.txt", "a");
-    fprintf(ipcs_id, "%d\n", sem_att);
-    fclose(ipcs_id);
-
     int n_atomico = atoi(argv[1]);
     int energia_rilasciata = 7;
     int min_n_atomico = atoi(argv[3]);

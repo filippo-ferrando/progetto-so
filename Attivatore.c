@@ -13,6 +13,10 @@ int main(){
     int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666);
 
+    FILE *ipcs_id = fopen("ipcs_id_sem.txt", "a");
+    fprintf(ipcs_id, "%d\n", sem_att);
+    fclose(ipcs_id);
+
     int n_attivazioni = 10;
 
     int msgid = msgget(KEY_INHIB,IPC_CREAT|0600); //msgid tiene id per comunicare con inibitore
