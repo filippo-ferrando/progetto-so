@@ -2,7 +2,7 @@
 #include "lib/key.h"
 
 int main(int argc, char* argv[]){
-    int sem_start = semget(KEY_SEM_ACT, 1, 0666);
+    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
     int n_nuovi_atomi = atoi(argv[2]);
     int step = atoi(argv[1]);
     int n_atom_rand = 0;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
             switch(fork()){
                 case -1:
                     perror("fork alimentatore: ");
-                    exit(1);
+                    exit(6);
                 case 0:
                     
                     if(execve("./Atomo.out", argv_atomo, NULL) < 0){
