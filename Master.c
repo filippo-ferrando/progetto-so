@@ -20,7 +20,8 @@ void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore,
     }
     nanosleep(&remaining, &request);
     if(fork() == 0){
-        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+        char* argv[] = {"killer.sh",NULL};
+        if(execve("./lib/killer.sh",argv,NULL) < 0){
             perror("execve timeout killer: ");
             exit(1);
         }
@@ -46,7 +47,8 @@ void handle_usr1(int signal){
     }
     nanosleep(&remaining, &request);
     if(fork() == 0){
-        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+        char* argv[] = {"killer.sh",NULL};
+        if(execve("./lib/killer.sh",argv,NULL) < 0){
             perror("execve timeout killer: ");
             exit(1);
         }
@@ -74,7 +76,8 @@ void handle_usr2(int signal){ //segnale di meltdown
     }
     nanosleep(&remaining, &request);
     if(fork() == 0){
-        if(execve("./lib/killer.sh",NULL,NULL) < 0){
+        char* argv[] = {"killer.sh",NULL};
+        if(execve("./lib/killer.sh",argv,NULL) < 0){
             perror("execve timeout killer: ");
             exit(1);
         }
@@ -198,7 +201,9 @@ int main(int argc, char* argv[]){
 
     //creazione processo alimentatore; Argomenti: STEP
     printf("Creo alimentatore\n");
-    char* argv_alimentatore[] = { "Alimentatore", STEP, N_NUOVI_ATOMI, N_ATOM_MAX, NULL };
+    char* buf = malloc(5);
+    sprintf(buf,"%d",getpid());
+    char* argv_alimentatore[] = { "Alimentatore", STEP, N_NUOVI_ATOMI, N_ATOM_MAX, buf,NULL };
     switch(fork()){
         case -1:
             perror("fork");

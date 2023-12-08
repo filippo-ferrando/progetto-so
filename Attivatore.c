@@ -17,6 +17,10 @@ int main(){
     fprintf(ipcs_id_s, "%d\n", sem_att);
     fclose(ipcs_id_s);
 
+    struct timespec remaining, request;
+    remaining.tv_sec = 0;
+    remaining.tv_nsec = 800000000;
+
     int n_attivazioni = 100;
 
     int msgid = msgget(KEY_INHIB,IPC_CREAT|0600); //msgid tiene id per comunicare con inibitore
@@ -64,7 +68,7 @@ int main(){
             exit(1);
         }
 
-        sleep(1);
+        nanosleep(&remaining, &request);
         
     }
     //printf("SEM VAL attivatore: %d\n", semctl(semid, 0, GETVAL));

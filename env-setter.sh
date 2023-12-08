@@ -7,19 +7,19 @@ echo Setting necessary environment variables...
 export ENERGY_DEMAND=10
 echo Setting ENERGY_DEMAND to $ENERGY_DEMAND
 
-export N_ATOMI_INIT=100
+export N_ATOMI_INIT=30
 echo Setting N_ATOMI_INIT to $N_ATOMI_INIT
 
-export N_ATOM_MAX=50000
+export N_ATOM_MAX=500
 echo Setting N_ATOM_MAX to $N_ATOM_MAX
 
 export MIN_N_ATOMICO=1
 echo Setting MIN_N_ATOMICO to $MIN_N_ATOMICO
 
-export N_NUOVI_ATOMI=100
+export N_NUOVI_ATOMI=200
 echo Setting N_NUOVI_ATOMI to $N_NUOVI_ATOMI
 
-export SIM_DURATION=120
+export SIM_DURATION=40
 echo Setting SIM_DURATION to $SIM_DURATION
 
 export ENERGY_EXPLODE_THRESHOLD=10000000000000

@@ -3,30 +3,42 @@
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666); //Semaforo per sincronizzare
+    
     int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
-    int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
+    int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); 
+    //Semaforo per accesso a variabili da stampare
     
     int n_atomico = atoi(argv[1]);
     int energia_rilasciata = 7;
     int min_n_atomico = atoi(argv[3]);
 
+    int bypass = atoi(argv[2]);
+
     int pid_master = atoi(argv[4]); 
-    char* proc_name[] = {"Atomo.out", NULL};
+
+    struct timespec remaining, request;
+    remaining.tv_sec = 0;
+    remaining.tv_nsec = 500000000;
     //Salvo il PID del Master. La logica è la seguente; se la fork causa meltdown, mando al padre SIGUSR2
-    //Ma per evitare che non possa forkare per uccidere tutto, dopodiché provo ad uccidere più atomi
-    //Possibili, per lasciare spazio al Master di forkare.
+
 
     //printf("invocato\n");
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
     st = shmat(shmid, NULL, 0);
 
-    if(atoi(argv[2]) != -1){
+
+    if(bypass == 0){
+        printf("ATOMO CREATO DA MASTER\n");
         if(reserveSem(sem_start, 0) < 0){
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }
+    }else{
+        printf("ATOMO CREATO DA ALIMENTATORE\n");
+        printf("atomo passato con %d\n", atoi(argv[2]));
     }
+    
     
 
     while(1){
@@ -67,27 +79,13 @@ int main(int argc, char* argv[]){
         //forko
         switch(fork()){
             case -1:
-                perror("fork atomo: ");
+                //perror("fork atomo: ");
                 //segnale di meltdown
                 kill(pid_master, SIGUSR2);
-                execve("/usr/bin/killall", proc_name,NULL);
                 exit(1);
             case 0:
                 //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++
                 //printf("atomo figlio %d creato\n", getpid());
-                if(n_atomico <= min_n_atomico){
-                    if(reserveSem(sem_sm, 8) < 0){
-                        perror("reserveSem sm scrap atomo: ");
-                        exit(1);
-                    }
-                    //printf("atomo figlio %d scrap\n", getpid());
-                    st->scrap++;
-                    if(releaseSem(sem_sm, 8) < 0){
-                        perror("releaseSem sm scrap atomo: ");
-                        exit(1);
-                    }
-                    exit(0);
-                }
 
                 //entro in sezione critica di sm per 
                 if(reserveSem(sem_sm, 2) < 0){
@@ -101,7 +99,6 @@ int main(int argc, char* argv[]){
                 //printf("atomo figlio %d in senzione critica\n", getpid());
                 st->split_ls++;
                 st->energy_created_ls += energia_rilasciata;
-
                 //esco sezione critica di sm
                 if(releaseSem(sem_sm, 2) < 0){
                     perror("releaseSem sm atomo: ");
@@ -112,6 +109,7 @@ int main(int argc, char* argv[]){
                     exit(1);
                 }
         }
+        nanosleep(&remaining, &request);
     }
     //printf("SEM VAL atomo: %d\n", semctl(semid, 0, GETVAL));
 

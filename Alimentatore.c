@@ -13,11 +13,12 @@ int main(int argc, char* argv[]){
     printf("\nstep: %d\n", step);
     remaining.tv_nsec = step;
 
+    int pid_master = atoi(argv[4]); //Salvo pid del master per inviargli SIGUSR2 in caso di MELTDOWN
 
     int i = 0;
 
-    char* buf = malloc(2);
-    char* argv_atomo[4] = {"./Atomo.out", buf, "-1",NULL};
+    char* buf = malloc(1);
+    char* argv_atomo[4] = {"Atomo.out", buf, "7",NULL};
 
     if(reserveSem(sem_start, 0) < 0){
         perror("reserveSem alimentatore atomo: ");
@@ -25,7 +26,6 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-        //printf("Alimentatore %d | creo %d atomi\n", getpid(), atoi(argv[1]));
         printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
 
         if(nanosleep(&remaining, &request) < 0){
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
 
         waitpid(-1, NULL, WNOHANG);
         
-        for( i = 0; i < n_nuovi_atomi; i++ ) {
+        for(i = 0; i < n_nuovi_atomi; i++ ) {
             srand(getpid());
             n_atom_rand = rand() % n_atom_max + 1;
             sprintf(buf, "%d", n_atom_rand);
@@ -44,22 +44,19 @@ int main(int argc, char* argv[]){
             switch(fork()){
                 case -1:
                     perror("fork alimentatore: ");
-                    exit(6);
+                    kill(pid_master, SIGUSR2);
+                    exit(1);
                 case 0:
-                    
-                    if(execve("./Atomo.out", argv_atomo, NULL) < 0){
-                        perror("execve");
+                    //printf("Alimentatore crea atomo\n");
+                    if(execve("./Atomo.out", argv_atomo, NULL) < 0){ //Problema: Stampa la print sopra, ma non fa l'execve sotto.
+                        perror("execve alimentatore: ");
                         exit(1);
                     }
-                    break;
-                default:
-                    continue;
+                    exit(0);
             }
         }
         
     }
-    
-    free(buf);
 
     //printf("SEM VAL alimentatore: %d\n", semctl(semid, 0, GETVAL));
     //printf("SONO ALIMENTATORE | HO PID %d | HO STEP %d \n", getpid(), atoi(argv[1]), atoi(argv[2]));
