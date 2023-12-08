@@ -163,17 +163,25 @@ int main(int argc, char* argv[]){
 
     //ciclo creazione processi atomo
     //char* argv_atomo[3];
-    char* buf = malloc(2);
-    char* argv_atomo[5] = {"./Atomo.out", buf, "0", MIN_N_ATOMICO,NULL};
+    char* rand_n = malloc(1);
+
+    char* pid = malloc(5);
+    sprintf(pid,"%d",getpid());
+
+    char* argv_atomo[] = {"./Atomo.out", rand_n, "0", MIN_N_ATOMICO,pid,NULL};
+
 
     int n_atom_rand;
+
+    
     
     for(int i=0; i<atoi(N_ATOMI_INIT); i++){
+        srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
         //printf("atomo %d n atomico %d\n", i, n_atom_rand);
-        sprintf(buf, "%d", n_atom_rand);
+        sprintf(rand_n, "%d", n_atom_rand);
         
-        strcpy(argv_atomo[1],buf);
+        strcpy(argv_atomo[1],rand_n);
         if(fork() == 0){
             switch(execve("./Atomo.out", argv_atomo, NULL)){
                 case -1:

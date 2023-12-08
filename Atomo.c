@@ -5,10 +5,16 @@ int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666); //Semaforo per sincronizzare
     int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
-
+    
     int n_atomico = atoi(argv[1]);
     int energia_rilasciata = 7;
     int min_n_atomico = atoi(argv[3]);
+
+    int pid_master = atoi(argv[4]); 
+    char* proc_name[] = {"Atomo.out", NULL};
+    //Salvo il PID del Master. La logica è la seguente; se la fork causa meltdown, mando al padre SIGUSR2
+    //Ma per evitare che non possa forkare per uccidere tutto, dopodiché provo ad uccidere più atomi
+    //Possibili, per lasciare spazio al Master di forkare.
 
     //printf("invocato\n");
     struct stats *st;
@@ -21,6 +27,7 @@ int main(int argc, char* argv[]){
             exit(1);
         }
     }
+    
 
     while(1){
         //################# TEST #################
@@ -40,6 +47,8 @@ int main(int argc, char* argv[]){
         //printf("qua\n");
         //calcolo numero atomico
         n_atomico = n_atomico / 2;
+        
+        waitpid(-1, NULL, WNOHANG);
 
         //controllo numero atomico e aumento scrap
         if(n_atomico <= min_n_atomico){
@@ -60,6 +69,8 @@ int main(int argc, char* argv[]){
             case -1:
                 perror("fork atomo: ");
                 //segnale di meltdown
+                kill(pid_master, SIGUSR2);
+                execve("/usr/bin/killall", proc_name,NULL);
                 exit(1);
             case 0:
                 //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++

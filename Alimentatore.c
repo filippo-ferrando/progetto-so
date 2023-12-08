@@ -32,8 +32,11 @@ int main(int argc, char* argv[]){
             perror("nanosleep alimentatore: ");
             exit(1);
         }
+
+        waitpid(-1, NULL, WNOHANG);
         
         for( i = 0; i < n_nuovi_atomi; i++ ) {
+            srand(getpid());
             n_atom_rand = rand() % n_atom_max + 1;
             sprintf(buf, "%d", n_atom_rand);
             strcpy(argv_atomo[1],buf);

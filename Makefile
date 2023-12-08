@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wvla -Wextra -Werror
+CFLAGS = -Wvla -Wextra -Werror -g -O0
 
 .PHONY: clean run
 
