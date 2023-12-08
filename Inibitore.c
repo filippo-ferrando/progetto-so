@@ -27,7 +27,7 @@ void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
 
 
 int main(int argc, char* argv[]){
-    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
+    int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     //Creo Sigaction
     struct sigaction sa;
     bzero(&sa, sizeof(sa));
@@ -37,19 +37,19 @@ int main(int argc, char* argv[]){
     sigaction(SIGUSR2,&sa, NULL);
     //Creo Shared Memory
     struct stats *st;
-    int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
+    int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
     int actual_energy = 0;
 
-    int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
+    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = atoi(argv[2]);
 
     //Creo coda di messaggi per parlare con Attivatore
-    msgid = msgget(KEY_INHIB,IPC_CREAT | 0666);
+    msgid = msgget(KEY_INHIB,0777);
     //Imposto tipo di messaggio per la coda di messaggi
     messaggio.mtype = 1; 
 

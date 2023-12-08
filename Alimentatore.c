@@ -2,23 +2,23 @@
 #include "lib/key.h"
 
 int main(int argc, char* argv[]){
-    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
+    int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int n_nuovi_atomi = atoi(argv[2]);
     int step = atoi(argv[1]);
     int n_atom_rand = 0;
     int n_atom_max = atoi(argv[3]);
-
+    
+    char* pid_master = argv[4]; //Salvo pid del master per inviargli SIGUSR2 in caso di MELTDOWN
+    char* min_n_atomico = argv[5];
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     printf("\nstep: %d\n", step);
     remaining.tv_nsec = step;
 
-    int pid_master = atoi(argv[4]); //Salvo pid del master per inviargli SIGUSR2 in caso di MELTDOWN
-
     int i = 0;
 
     char* buf = malloc(1);
-    char* argv_atomo[4] = {"Atomo.out", buf, "7",NULL};
+    char* argv_atomo[] = {"Atomo.out", buf, "7",min_n_atomico,pid_master,NULL};
 
     if(reserveSem(sem_start, 0) < 0){
         perror("reserveSem alimentatore atomo: ");
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
             switch(fork()){
                 case -1:
                     perror("fork alimentatore: ");
-                    kill(pid_master, SIGUSR2);
+                    kill(atoi(pid_master), SIGUSR2);
                     exit(1);
                 case 0:
                     //printf("Alimentatore crea atomo\n");

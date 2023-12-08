@@ -2,57 +2,50 @@
 #include "lib/key.h"
 
 int main(int argc, char* argv[]){
-    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666); //Semaforo per sincronizzare
+    int sem_start = semget(KEY_SEM_ACT, 1, 0777);
+    printf("sem_start: %d\n", sem_start);
+
+    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
+    printf("sem_sm: %d\n", sem_sm);
     
-    int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666); //Semaforo per accesso a variabili da stampare
-    int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666); 
+    int sem_att = semget(KEY_ATT, 1, 0777);
+    printf("sem_att: %d\n", sem_att);
+    
     //Semaforo per accesso a variabili da stampare
     
     int n_atomico = atoi(argv[1]);
     int energia_rilasciata = 7;
     int min_n_atomico = atoi(argv[3]);
-
     int bypass = atoi(argv[2]);
-
     int pid_master = atoi(argv[4]); 
+
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
     //Salvo il PID del Master. La logica è la seguente; se la fork causa meltdown, mando al padre SIGUSR2
 
-
+    
     //printf("invocato\n");
     struct stats *st;
-    int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
+    int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
 
-    if(bypass == 0){
-        printf("ATOMO CREATO DA MASTER\n");
-        if(reserveSem(sem_start, 0) < 0){
-            perror("reserveSem attivatore atomo: ");
+    if(bypass != 0){
+        printf("ATOMO CREATO DA ALIMENTATORE\n");
+    }else{
+        if(reserveSem(sem_start, 0) == -1){
+            printf("sem_start: %d\n", sem_start);
+            perror("reserveSem start master atomo: ");
             exit(1);
         }
-    }else{
-        printf("ATOMO CREATO DA ALIMENTATORE\n");
-        printf("atomo passato con %d\n", atoi(argv[2]));
-    }
-    
-    
+        //printf("ATOMO CREATO DA ALIMENTATORE\n");
+        //printf("atomo passato con %d\n", atoi(argv[2]));
+    }    
 
-    while(1){
-        //################# TEST #################
-        /*
-        if(atoi(argv[2]) == -1){
-            printf("atomo creato da alimentatore %d\n", getpid());
-        }else{
-            printf("atomo creato da master %d\n", getpid());
-        }
-        */
-        //################# TEST #################
-        
-        if(reserveSem(sem_att, 0) < 0){
+    while(1){   
+        if(reserveSem(sem_att, 0) < 0){            
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }

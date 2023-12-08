@@ -58,7 +58,6 @@ void handle_usr1(int signal){
 
 }
 
-
 void handle_usr2(int signal){ //segnale di meltdown
     int i;
     struct timespec remaining, request;
@@ -109,7 +108,7 @@ int main(int argc, char* argv[]){
 
     //semafori partenza simulazione
     int sem_master_ready; 
-    sem_master_ready = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
+    sem_master_ready = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0777);
     fprintf(ipcs_id, "%d\n", sem_master_ready);
     if(semctl(sem_master_ready, 0, SETVAL, 0) < 0){
         perror("semctl master ready");
@@ -117,14 +116,14 @@ int main(int argc, char* argv[]){
     }
 
     //semaforo shared memory
-    int sem_sm_ready = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
+    int sem_sm_ready = semget(KEY_SEM_SM, 9, IPC_CREAT | 0777);
     fprintf(ipcs_id, "%d\n", sem_sm_ready);
     for(int i=0; i<9; i++){
         semctl(sem_sm_ready, i, SETVAL, 0);
     }
     
     //shared memory
-    int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0666);
+    int shmid = shmget(KEY_SHM, sizeof(st), IPC_CREAT | 0777);
     fprintf(ipcs_id2, "%d\n", shmid);
     st = shmat(shmid, NULL, 0);
 
@@ -164,20 +163,63 @@ int main(int argc, char* argv[]){
     sigaction(SIGUSR2,&sa,NULL);
     
 
-    //ciclo creazione processi atomo
-    //char* argv_atomo[3];
-    char* rand_n = malloc(1);
-
     char* pid = malloc(5);
     sprintf(pid,"%d",getpid());
 
-    char* argv_atomo[] = {"./Atomo.out", rand_n, "0", MIN_N_ATOMICO,pid,NULL};
+     //creazione processo attivatore; Argomenti: Nessuno
+    printf("Creo attivatore\n");
+    char* argv_attivatore[] = {"Attivatore",NULL};
+    if(fork() == 0){
+        if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
+            perror("execve");
+            exit(1);
+        }
+        
+    }
 
+    //###########################################
+
+    //creazione processo alimentatore; Argomenti: STEP
+    printf("Creo alimentatore\n");
+    char* buf = malloc(5);
+    sprintf(buf,"%d",getpid());
+    char* argv_alimentatore[] = { "Alimentatore", STEP, N_NUOVI_ATOMI, N_ATOM_MAX,buf,MIN_N_ATOMICO,NULL };
+    switch(fork()){
+        case -1:
+            perror("fork");
+            exit(1);
+        case 0:
+            switch(execve("./Alimentatore.out",argv_alimentatore,NULL)){
+                case -1:
+                    perror("execve");
+                    exit(1);
+            }
+        default:
+            break;
+    }
+
+    
+    
+
+    //creazione processo inibitore; Argomenti: INIBIT_ATT
+    printf("Creo inibitore\n");
+    char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
+    if(fork() == 0){
+        if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
+            perror("execve");
+            exit(1);
+        }
+        
+    }
+
+    //ciclo creazione processi atomo
+    char* rand_n = malloc(1);
+
+    char* argv_atomo[] = {"./Atomo.out", rand_n, "0", MIN_N_ATOMICO,pid,NULL};
 
     int n_atom_rand;
 
-    
-    
+    //crezione processo atomo
     for(int i=0; i<atoi(N_ATOMI_INIT); i++){
         srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
@@ -197,49 +239,6 @@ int main(int argc, char* argv[]){
         
         
     }
-    //###########################################
-
-    //creazione processo alimentatore; Argomenti: STEP
-    printf("Creo alimentatore\n");
-    char* buf = malloc(5);
-    sprintf(buf,"%d",getpid());
-    char* argv_alimentatore[] = { "Alimentatore", STEP, N_NUOVI_ATOMI, N_ATOM_MAX, buf,NULL };
-    switch(fork()){
-        case -1:
-            perror("fork");
-            exit(1);
-        case 0:
-            switch(execve("./Alimentatore.out",argv_alimentatore,NULL)){
-                case -1:
-                    perror("execve");
-                    exit(1);
-            }
-        default:
-            break;
-    }
-
-    
-    //creazione processo attivatore; Argomenti: Nessuno
-    printf("Creo attivatore\n");
-    char* argv_attivatore[] = {"Attivatore",NULL};
-    if(fork() == 0){
-        if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
-            perror("execve");
-            exit(1);
-        }
-        
-    }
-
-    //creazione processo inibitore; Argomenti: INIBIT_ATT
-    printf("Creo inibitore\n");
-    char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
-    if(fork() == 0){
-        if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
-            perror("execve");
-            exit(1);
-        }
-        
-    }
 
 
     printf("rilascio semaforo\n");
@@ -247,6 +246,7 @@ int main(int argc, char* argv[]){
         perror("semctl");
         exit(1);
     }
+    printf("semaforo rilasciato %d\n", semctl(sem_master_ready, 0, GETVAL, 0));
 
     //sleep(100);
     /*

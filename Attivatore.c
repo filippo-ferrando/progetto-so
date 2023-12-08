@@ -9,9 +9,11 @@ struct message_buff {
 };
 
 int main(){
-    int sem_start = semget(KEY_SEM_ACT, 1, IPC_CREAT | 0666);
-    int sem_sm = semget(KEY_SEM_SM, 9, IPC_CREAT | 0666);
-    int sem_att = semget(KEY_ATT, 1, IPC_CREAT | 0666);
+    int sem_start = semget(KEY_SEM_ACT, 1, 0777);
+    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
+
+    int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
+    semctl(sem_att, 0, SETVAL, 0);
 
     FILE *ipcs_id_s = fopen("ipcs_id_sem.txt", "a");
     fprintf(ipcs_id_s, "%d\n", sem_att);
@@ -23,7 +25,7 @@ int main(){
 
     int n_attivazioni = 100;
 
-    int msgid = msgget(KEY_INHIB,IPC_CREAT|0600); //msgid tiene id per comunicare con inibitore
+    int msgid = msgget(KEY_INHIB,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
     struct message_buff messaggio; //Tiene il messaggio che riceve dall'inibitore
     messaggio.mtype = 1; //mtype a 1 per comunicare con l'inibitore
 
@@ -32,10 +34,14 @@ int main(){
     fclose(ipcs_id_q);
 
     struct stats *st;
-    int shmid = shmget(KEY_SHM, sizeof(st), 0666);
+    int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
-    reserveSem(sem_start, 0);
+    if(reserveSem(sem_start, 0) < 0){
+        perror("reserveSem start attivatore: ");
+        exit(1);
+    
+    }
     printf("SONO ATTIVATORE | HO PID %d\n", getpid());
 
     while(1){

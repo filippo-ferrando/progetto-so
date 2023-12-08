@@ -56,7 +56,7 @@ int releaseSem(int semid, int n_sem){
     sops.sem_flg = 0;
 
     if(semop(semid, &sops, 1) < 0){
-        perror("Semop: ");
+        perror("semop release: ");
         return -1;
     }
 
@@ -73,7 +73,7 @@ int reserveSem(int semid, int n_sem){
     sops.sem_flg = 0;
 
     if(semop(semid, &sops, 1) < 0){
-        perror("semop: ");
+        perror("semop reserve: ");
         return -1;
     }
 
