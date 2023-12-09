@@ -3,13 +3,13 @@
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
-    printf("sem_start: %d\n", sem_start);
+    //printf("sem_start: %d\n", sem_start);
 
     int sem_sm = semget(KEY_SEM_SM, 9, 0777);
-    printf("sem_sm: %d\n", sem_sm);
+    //printf("sem_sm: %d\n", sem_sm);
     
     int sem_att = semget(KEY_ATT, 1, 0777);
-    printf("sem_att: %d\n", sem_att);
+    //printf("sem_att: %d\n", sem_att);
     
     //Semaforo per accesso a variabili da stampare
     
@@ -32,17 +32,16 @@ int main(int argc, char* argv[]){
     st = shmat(shmid, NULL, 0);
 
 
-    if(bypass != 0){
-        printf("ATOMO CREATO DA ALIMENTATORE\n");
-    }else{
+    if(bypass == 0){
         if(reserveSem(sem_start, 0) == -1){
             printf("sem_start: %d\n", sem_start);
             perror("reserveSem start master atomo: ");
             exit(1);
         }
+    }
+        
         //printf("ATOMO CREATO DA ALIMENTATORE\n");
-        //printf("atomo passato con %d\n", atoi(argv[2]));
-    }    
+        //printf"atomo passato con %d\n", atoi(argv[2]));
 
     while(1){   
         if(reserveSem(sem_att, 0) < 0){            
