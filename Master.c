@@ -1,13 +1,15 @@
-#include "lib/projectLib.h"
+#include "lib/generalLib.h"
 #include "lib/key.h"
 
 int alarm_rt = 0;
 
+
 void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore, Alimentatore, Atomo e Attivatore
     int i;
+
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 500000000;
+    remaining.tv_nsec = 250000000;
 
     printf("Esco per Timeout\n");
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
@@ -18,7 +20,9 @@ void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore,
         }
         exit(0);
     }
+
     nanosleep(&remaining, &request);
+
     if(fork() == 0){
         char* argv[] = {"killer.sh",NULL};
         if(execve("./lib/killer.sh",argv,NULL) < 0){
@@ -35,7 +39,7 @@ void handle_usr1(int signal){
     int i;
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 500000000;
+    remaining.tv_nsec = 250000000;
 
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
     if(fork() == 0){
@@ -62,7 +66,7 @@ void handle_usr2(int signal){ //segnale di meltdown
     int i;
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 500000000;
+    remaining.tv_nsec = 250000000;
     printf("MELTDOWN");
 
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
@@ -159,7 +163,7 @@ int main(int argc, char* argv[]){
     sa.sa_handler = handle_usr1;
     sigaction(SIGUSR1,&sa,NULL);
 
-    sa.sa_handler = handle_usr2; //Probabilmente da cancellare
+    sa.sa_handler = handle_usr2;
     sigaction(SIGUSR2,&sa,NULL);
     
 
@@ -176,8 +180,6 @@ int main(int argc, char* argv[]){
         }
         
     }
-
-    //###########################################
 
     //creazione processo alimentatore; Argomenti: STEP
     printf("Creo alimentatore\n");
@@ -197,9 +199,6 @@ int main(int argc, char* argv[]){
         default:
             break;
     }
-
-    
-    
 
     //creazione processo inibitore; Argomenti: INIBIT_ATT
     printf("Creo inibitore\n");
@@ -248,15 +247,8 @@ int main(int argc, char* argv[]){
     }
     printf("semaforo rilasciato %d\n", semctl(sem_master_ready, 0, GETVAL, 0));
 
-    //sleep(100);
-    /*
-    if(semctl(sem_master_ready, 0, IPC_RMID, 0) < 0){
-        perror("semctl");
-        exit(1);
-    }
-    */
 
-    nanosleep(&remaining, &request);
+    nanosleep(&remaining, &request); //dò il tempo ad atomo di scindere e creare energia -> altrimenti master entra in blackout subito
     
 
     alarm(atoi(SIM_DURATION));
