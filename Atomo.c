@@ -41,7 +41,8 @@ int main(int argc, char* argv[]){
     }
 
     while(1){   
-        if(reserveSem(sem_att, 0) < 0){            
+        if(reserveSem(sem_att, 0) < 0){    
+            printf("sem_att: %d\n", sem_att);        
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }
