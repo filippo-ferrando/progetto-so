@@ -123,9 +123,9 @@ int main(int argc, char* argv[]){
     }
 
     //semaforo shared memory
-    int sem_sm_ready = semget(KEY_SEM_SM, 9, IPC_CREAT | 0777);
+    int sem_sm_ready = semget(KEY_SEM_SM, 10, IPC_CREAT | 0777);
     fprintf(ipcs_id, "%d\n", sem_sm_ready);
-    for(int i=0; i<9; i++){
+    for(int i=0; i<=9; i++){
         semctl(sem_sm_ready, i, SETVAL, 0);
     }
     
@@ -146,6 +146,7 @@ int main(int argc, char* argv[]){
     st->energy_consumed_ls = 0;     //sem 6
     st->energy_consumed_total = 0;  //sem 7
     st->scrap = 0;                  //sem 8
+    st->scrap_ls = 0;               //sem 9
 
     releaseSem(sem_sm_ready, 0);
     releaseSem(sem_sm_ready, 1);
@@ -156,6 +157,7 @@ int main(int argc, char* argv[]){
     releaseSem(sem_sm_ready, 6);
     releaseSem(sem_sm_ready, 7);
     releaseSem(sem_sm_ready, 8);
+    releaseSem(sem_sm_ready, 9);
 
     //Creazione Handler
     struct sigaction sa;
@@ -268,6 +270,7 @@ int main(int argc, char* argv[]){
         reserveSem(sem_sm_ready, 6);
         reserveSem(sem_sm_ready, 7);
         reserveSem(sem_sm_ready, 8);
+        reserveSem(sem_sm_ready, 9);
 
         printf("--------------------------------------------------\n");
         printf("attivazioni totali: %d\n", st->activations_total);
@@ -279,16 +282,19 @@ int main(int argc, char* argv[]){
         printf("energia totale consumata: %d\n", st->energy_consumed_total);
         printf("energia consumata last sec: %d\n\n", st->energy_consumed_ls);
         printf("scarti: %d\n", st->scrap);
+        printf("scarti last sec: %d\n", st->scrap_ls);
         printf("--------------------------------------------------\n");
 
         st->energy_created_total = st->energy_created_total + st->energy_created_ls - atoi(ENERGY_DEMAND);
         st->activations_total += st->activations_ls;
         st->split_total += st->split_ls;
         st->energy_consumed_total += st->energy_consumed_ls;
+        st->scrap += st->scrap_ls;
         st->energy_consumed_ls = atoi(ENERGY_DEMAND);
         st->activations_ls = 0;
         st->split_ls = 0;
         st->energy_created_ls = 0;
+        st->scrap_ls = 0;
 
         if(st->energy_created_total > atoi(ENERGY_EXPLODE_THRESHOLD)){   //explode, ho creato più energia che io riesca a gestire
             printf("Esco per Explode\n");
@@ -309,6 +315,7 @@ int main(int argc, char* argv[]){
         releaseSem(sem_sm_ready, 6);
         releaseSem(sem_sm_ready, 7);
         releaseSem(sem_sm_ready, 8);
+        releaseSem(sem_sm_ready, 9);
 
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
         waitpid(-1, NULL, WNOHANG);
