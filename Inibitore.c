@@ -42,7 +42,7 @@ int main(int argc, char* argv[]){
 
     int actual_energy = 0;
 
-    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
+    int sem_sm = semget(KEY_SEM_SM, 10, 0777);
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
