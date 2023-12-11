@@ -11,7 +11,7 @@ struct message_buff {
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
-    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
+    int sem_sm = semget(KEY_SEM_SM, 10, 0777);
 
     //inizializzo semaforo attivatore a 0
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
