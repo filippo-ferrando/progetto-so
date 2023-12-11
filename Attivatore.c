@@ -9,7 +9,7 @@ struct message_buff {
     int mex;
 };
 
-int main(){
+int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int sem_sm = semget(KEY_SEM_SM, 9, 0777);
 
@@ -25,7 +25,7 @@ int main(){
     //struct per nanosleep
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 300000000;  //0,3s da definire metodo di decisione tempo di attivazione
+    remaining.tv_nsec = atoi(argv[1]);  //0,15s da definire metodo di decisione tempo di attivazione
 
     //numero di attivazioni che l'attivatore deve fare
     int n_attivazioni = 15;    //da definire metodo di decisione numero di attivazioni
