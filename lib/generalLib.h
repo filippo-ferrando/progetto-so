@@ -43,6 +43,11 @@ char* env_get_ENERGY_EXPLODE_THRESHOLD(){
     return ENERGY_EXPLODE_THRESHOLD;
 }
 
+char* env_get_ATT_STEP(){
+    char* ATT_STEP = getenv("ATT_STEP");
+    return ATT_STEP;
+}
+
 char* env_get_STEP(){
     char* STEP = getenv("STEP");
     return STEP;
