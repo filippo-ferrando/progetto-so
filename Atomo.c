@@ -1,18 +1,22 @@
 #include "lib/generalLib.h"
 #include "lib/key.h"
 
+int energy_released(int n1, int n2);
+
 int main(int argc, char* argv[]){
     int n_atomico = atoi(argv[1]);
     int bypass = atoi(argv[2]);
     int min_n_atomico = atoi(argv[3]);
     int pid_master = atoi(argv[4]);
+    int rand_soglia = 0;
+    int n_padre = 0;
 
     //get semaforo sync-start
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     //printf("sem_start: %d\n", sem_start);
 
     //get semaforo sm
-    int sem_sm = semget(KEY_SEM_SM, 9, 0777);
+    int sem_sm = semget(KEY_SEM_SM, 10, 0777);
     //printf("sem_sm: %d\n", sem_sm);
     
     //get semaforo attivatore
@@ -48,20 +52,22 @@ int main(int argc, char* argv[]){
         }
 
         //calcolo numero atomico
-        n_atomico = n_atomico / 2; // funzione da scegliere
+        srand(getpid());
+        rand_soglia = rand() % n_atomico + 1;
+        n_atomico -= rand_soglia;
         
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
         waitpid(-1, NULL, WNOHANG);
 
         //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++
         if(n_atomico <= min_n_atomico){
-            if(reserveSem(sem_sm, 8) < 0){
+            if(reserveSem(sem_sm, 9) < 0){
                 perror("reserveSem sm scrap atomo: ");
                 exit(1);
             }
-            st->scrap++;
+            st->scrap_ls++;
             //printf("atomo %d scrap\n", getpid());
-            if(releaseSem(sem_sm, 8) < 0){
+            if(releaseSem(sem_sm, 9) < 0){
                 perror("releaseSem sm scrap atomo: ");
                 exit(1);
             }
@@ -76,6 +82,8 @@ int main(int argc, char* argv[]){
                 exit(1);
             case 0:
                 //printf("atomo figlio %d creato\n", getpid());
+                n_padre = n_atomico;
+                n_atomico = rand_soglia;
 
                 //entro in sezione critica di sm per  split e energy_created_ls
                 if(reserveSem(sem_sm, 2) < 0){
@@ -89,7 +97,7 @@ int main(int argc, char* argv[]){
 
                 //printf("atomo figlio %d in senzione critica\n", getpid());
                 st->split_ls++;
-                st->energy_created_ls += energia_rilasciata;
+                st->energy_created_ls += energy_released(n_atomico, n_padre);
 
                 //esco sezione critica di sm
                 if(releaseSem(sem_sm, 2) < 0){
@@ -104,4 +112,14 @@ int main(int argc, char* argv[]){
         //nanosleep(&remaining, &request);
     }
     exit(0);
+}
+
+int energy_released(int n1, int n2){
+    int max;
+    if(n1 > n2){
+        max = n1;
+    }else{
+        max = n2;
+    }
+    return ((n1 * n2) - max);
 }
