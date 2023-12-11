@@ -25,6 +25,12 @@ void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
     stato_inib = 1;
 }
 
+/*
+* ATTACH SM PER:
+*   - ENERGIA ASSORBITA DA INIBITORE
+* METODO PER CREARE LOG DI INIBITORE
+*/
+
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
@@ -61,7 +67,7 @@ int main(int argc, char* argv[]){
     sleep(1);
 
     /*
-    * INIBITORE ACCESO O SPENTO
+    * INIBITORE ACCESO O SPENTO (varibile ambente passata da master o SIGUSR1/2)
     * DEVE GESTIRE SIA MELTDOWN CHE EXPLODE
     * SE INIBITORE ACCESO:
     *   - CONTROLLA LA REAZIONE TRANSORMANDO RAND ATOMI IN SCORIE (?)
