@@ -28,8 +28,6 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
-    int energia_rilasciata = 2; // energia rilasciata sarà calcolata con una funzione fornita dai professori
-    
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
     remaining.tv_sec = 0;
@@ -74,6 +72,9 @@ int main(int argc, char* argv[]){
             exit(0);
         }
         //forko
+        /*
+        *IF LAST MSG_TYPE == 3 -> n_atomico (figlio) = 1 -> scrap++
+        */
         switch(fork()){
             case -1:
                 //perror("fork atomo: ");
@@ -96,6 +97,9 @@ int main(int argc, char* argv[]){
                 }
 
                 //printf("atomo figlio %d in senzione critica\n", getpid());
+                /*
+                *IF LAST MSG_TYPE == 1 -> energy_released - rand_soglia if rand_soglia > energy_released else ci inventiamo qualcosa
+                */
                 st->split_ls++;
                 st->energy_created_ls += energy_released(n_atomico, n_padre);
 
