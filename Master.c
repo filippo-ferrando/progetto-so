@@ -100,6 +100,7 @@ int main(int argc, char* argv[]){
     char* STEP = env_get_STEP();
     char* INIBIT_ATT = env_get_INIBIT_ATT();
     char* INIBIT_CHECK = env_get_INIBIT_CHECK();
+    char* ATT_STEP = env_get_ATT_STEP();
 
     int i = 0;
 
@@ -175,7 +176,7 @@ int main(int argc, char* argv[]){
 
      //creazione processo attivatore; Argomenti: Nessuno
     printf("Creo attivatore\n");
-    char* argv_attivatore[] = {"Attivatore",NULL};
+    char* argv_attivatore[] = {"Attivatore",ATT_STEP,NULL};
     if(fork() == 0){
         if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
             perror("execve");
