@@ -60,6 +60,16 @@ int main(int argc, char* argv[]){
 
     sleep(1);
 
+    /*
+    * INIBITORE ACCESO O SPENTO
+    * DEVE GESTIRE SIA MELTDOWN CHE EXPLODE
+    * SE INIBITORE ACCESO:
+    *   - CONTROLLA LA REAZIONE TRANSORMANDO RAND ATOMI IN SCORIE (?)
+    *   - CONTROLLA IL RILASCIO DI ENERGIA ASSORBENDONE UNA PARTE -> L'ENERGIA VIENE ASSORBITA DIRETTAMENTE DALLA SCISSIONE (?)
+    * SE INIBITORE SPENTO:
+    *   - NON FACCIO NIENTE
+    */
+
     while(1){ 
         if(reserveSem(sem_sm, 5) < 0){
             perror("reserveSem sm inibitore: ");
