@@ -97,5 +97,6 @@ typedef struct stats {
     int energy_consumed_ls;
     int energy_consumed_total;
     int scrap;
+    int scrap_ls;
 }stats;
 
