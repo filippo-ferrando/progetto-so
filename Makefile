@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wvla -Wextra -Werror -g -O0
+CFLAGS = -Wvla -Wextra -Werror
 
 .PHONY: clean run
 
@@ -12,6 +12,9 @@ Master.out: Master.c Alimentatore.c Attivatore.c Atomo.c Inibitore.c
 
 clean:
 	rm -f *.out
+
+setup:
+	./env-setter.sh
 
 run:
 	./Master.out

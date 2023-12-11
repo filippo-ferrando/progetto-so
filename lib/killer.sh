@@ -30,7 +30,7 @@ do
     ipcrm -q $q > /dev/null 2>&1
 done
 
-#rm ipcs_id_mem.txt ipcs_id_sem.txt ipcs_id_q.txt
+rm ipcs_id_mem.txt ipcs_id_sem.txt ipcs_id_q.txt
 
 echo $'Done.\n'
 exit 0

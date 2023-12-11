@@ -101,6 +101,8 @@ int main(int argc, char* argv[]){
     char* INIBIT_ATT = env_get_INIBIT_ATT();
     char* INIBIT_CHECK = env_get_INIBIT_CHECK();
 
+    int i = 0;
+
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
@@ -132,6 +134,7 @@ int main(int argc, char* argv[]){
     st = shmat(shmid, NULL, 0);
 
     fclose(ipcs_id);
+    fclose(ipcs_id2);
 
     st->activations_ls = 0;         //sem 0
     st->activations_total = 0;      //sem 1
@@ -199,7 +202,7 @@ int main(int argc, char* argv[]){
         default:
             break;
     }
-
+    /*
     //creazione processo inibitore; Argomenti: INIBIT_ATT
     printf("Creo inibitore\n");
     char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
@@ -210,16 +213,18 @@ int main(int argc, char* argv[]){
         }
         
     }
+    */
 
     //ciclo creazione processi atomo
+    
     char* rand_n = malloc(1);
-
+    
     char* argv_atomo[] = {"./Atomo.out", rand_n, "0", MIN_N_ATOMICO,pid,NULL};
-
+    
     int n_atom_rand;
-
+    
     //crezione processo atomo
-    for(int i=0; i<atoi(N_ATOMI_INIT); i++){
+    for(i=0; i<atoi(N_ATOMI_INIT); i++){
         srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
         //printf("atomo %d n atomico %d\n", i, n_atom_rand);
@@ -245,14 +250,13 @@ int main(int argc, char* argv[]){
         perror("semctl");
         exit(1);
     }
-    printf("semaforo rilasciato %d\n", semctl(sem_master_ready, 0, GETVAL, 0));
 
-
-    nanosleep(&remaining, &request); //dò il tempo ad atomo di scindere e creare energia -> altrimenti master entra in blackout subito
+    //nanosleep(&remaining, &request); //dò il tempo ad atomo di scindere e creare energia -> altrimenti master entra in blackout subito
     
 
     alarm(atoi(SIM_DURATION));
     while(1){
+        sleep(1);
         //semfori sm
         reserveSem(sem_sm_ready, 0);
         reserveSem(sem_sm_ready, 1);
@@ -268,11 +272,11 @@ int main(int argc, char* argv[]){
         printf("attivazioni totali: %d\n", st->activations_total);
         printf("attivazioni last sec: %d\n\n", st->activations_ls);
         printf("scissioni totali: %d\n", st->split_total);
-        printf("scissioni last sec: %d\n", st->split_ls);
+        printf("scissioni last sec: %d\n\n", st->split_ls);
         printf("energia totale: %d\n", st->energy_created_total);
         printf("energia creata last sec: %d\n", st->energy_created_ls);
         printf("energia totale consumata: %d\n", st->energy_consumed_total);
-        printf("energia consumata last sec: %d\n", st->energy_consumed_ls);
+        printf("energia consumata last sec: %d\n\n", st->energy_consumed_ls);
         printf("scarti: %d\n", st->scrap);
         printf("--------------------------------------------------\n");
 
@@ -304,8 +308,9 @@ int main(int argc, char* argv[]){
         releaseSem(sem_sm_ready, 6);
         releaseSem(sem_sm_ready, 7);
         releaseSem(sem_sm_ready, 8);
-        
-        sleep(1);
+
+        //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
+        waitpid(-1, NULL, WNOHANG);
     }
     //terminazione
     exit(0);

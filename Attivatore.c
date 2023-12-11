@@ -25,10 +25,10 @@ int main(){
     //struct per nanosleep
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 800000000;  //0,8s da definire metodo di decisione tempo di attivazione
+    remaining.tv_nsec = 300000000;  //0,3s da definire metodo di decisione tempo di attivazione
 
     //numero di attivazioni che l'attivatore deve fare
-    int n_attivazioni = 100;    //da definire metodo di decisione numero di attivazioni
+    int n_attivazioni = 15;    //da definire metodo di decisione numero di attivazioni
 
     int msgid = msgget(KEY_INHIB,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
     struct message_buff messaggio; //Tiene il messaggio che riceve dall'inibitore

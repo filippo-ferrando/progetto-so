@@ -24,7 +24,7 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
-    int energia_rilasciata = 7; // energia rilasciata sarà calcolata con una funzione fornita dai professori
+    int energia_rilasciata = 2; // energia rilasciata sarà calcolata con una funzione fornita dai professori
     
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]){
                     exit(1);
                 }
         }
-        nanosleep(&remaining, &request);
+        //nanosleep(&remaining, &request);
     }
     exit(0);
 }
