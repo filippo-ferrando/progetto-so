@@ -48,15 +48,15 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);
+        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
 
         if(errno != ENOMSG){
             //printf("atomo %d ricevuto messaggio\n", getpid());
-            printf("Scrapped by inibitor\n");
             if(reserveSem(sem_sm, 9) < 0){
                 perror("reserveSem sm scrap_ls atomo: ");
                 exit(1);
             }
+            printf("atomo %d scrap\n", getpid());
             st->scrap_ls++;
             if(releaseSem(sem_sm, 9) < 0){
                 perror("releaseSem sm scrap_ls atomo: ");
@@ -117,14 +117,17 @@ int main(int argc, char* argv[]){
                     perror("reserveSem sm atomo: ");
                     exit(1);
                 }
+                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 3, IPC_NOWAIT); //se il messaggio che POSSO ricevere è tipo 3 -> l'energia rilasciata si dimezza
+                if(errno != ENOMSG){
+                    //printf("atomo %d ricevuto messaggio\n", getpid());
+                    printf("atomo %d rilascia energia dimezzata\n", getpid());
+                    st->energy_created_ls += energy_released(n_atomico, n_padre) / 2;
+                }else{
+                    st->energy_created_ls += energy_released(n_atomico, n_padre);
+                }
 
-                //printf("atomo figlio %d in senzione critica\n", getpid());
-                /*
-                *IF LAST MSG_TYPE == 1 -> energy_released - rand_soglia if rand_soglia > energy_released else ci inventiamo qualcosa
-                */
                 st->split_ls++;
-                st->energy_created_ls += energy_released(n_atomico, n_padre);
-
+                
                 //esco sezione critica di sm
                 if(releaseSem(sem_sm, 2) < 0){
                     perror("releaseSem sm atomo: ");

@@ -85,7 +85,16 @@ int main(int argc, char* argv[]){
 
             for(int i = 0; i < rand() % 100 +1; i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
-                    perror("msg send inibitore: ");
+                    perror("msg send inibitore scrap: ");
+                }
+            }
+
+            mex.mex = 0;
+            mex.mtype = 3;
+
+            for(int i = 0; i < rand() % 200 +1; i++){
+                if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
+                    perror("msg send inibitore energia: ");
                 }
             }
 
