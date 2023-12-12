@@ -331,7 +331,7 @@ int main(int argc, char* argv[]){
         releaseSem(sem_sm_ready, 9);
 
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
-        waitpid(-1, NULL, WNOHANG);
+        while(waitpid(-1, NULL, WNOHANG)>0);
     }
     //terminazione
     exit(0);

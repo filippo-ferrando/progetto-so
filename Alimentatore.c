@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
         }
 
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
-        waitpid(-1, NULL, WNOHANG);
+        while(waitpid(-1, NULL, WNOHANG)>0);
         
         //creo n_nuovi_atomi atomi
         for(i = 0; i < n_nuovi_atomi; i++ ) {
