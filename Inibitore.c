@@ -29,6 +29,7 @@ void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
+    int sem_inibitore_ready = semget(KEY_PROC_READY, 1, 0777);
     stato_inib = 1;
     //Creo Sigaction
     struct sigaction sa;
@@ -54,6 +55,8 @@ int main(int argc, char* argv[]){
     int msgid = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con inibitore
     struct message_buf mex;
     mex.mex = 0;
+
+    releaseSem(sem_inibitore_ready, 0);
     
 
     if(reserveSem(sem_start, 0) < 0){ //Sincronizzo l'inibitore con il resto dei processi tramite semaforo.

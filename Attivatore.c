@@ -4,6 +4,7 @@
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int sem_sm = semget(KEY_SEM_SM, 10, 0777);
+    int sem_attivatore_ready = semget(KEY_PROC_READY, 1, 0777);
 
     //inizializzo semaforo attivatore a 0
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
@@ -28,6 +29,8 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
+    releaseSem(sem_attivatore_ready, 0);
+
     //sincronizzo attivatore con resto dei processi
     if(reserveSem(sem_start, 0) < 0){
         perror("reserveSem start attivatore: ");

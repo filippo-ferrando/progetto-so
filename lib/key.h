@@ -3,3 +3,4 @@
 #define KEY_SHM 8 
 #define KEY_ATT 9 //Chiave che usa Alimentatore
 #define KEY_INHIB 10
+#define KEY_PROC_READY 11

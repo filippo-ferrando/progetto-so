@@ -23,6 +23,8 @@ int main(int argc, char* argv[]){
     int sem_att = semget(KEY_ATT, 1, 0777);
     //printf("sem_att: %d\n", sem_att);
 
+    int sem_atom_start_ready = semget(KEY_PROC_READY, 1, 0777);
+
     //attach to shared memory
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
@@ -40,6 +42,7 @@ int main(int argc, char* argv[]){
     
     //se atomo viene creato da master deve aspettare il semaforo di start -> alimentatore setta bypass != 0 -> atomo bypassa semaforo
     if(bypass == 0){
+        releaseSem(sem_atom_start_ready, 0);
         if(reserveSem(sem_start, 0) == -1){
             printf("sem_start: %d\n", sem_start);
             perror("reserveSem start master atomo: ");

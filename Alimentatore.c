@@ -11,6 +11,8 @@ int main(int argc, char* argv[]){
     //get semaforo sync-start
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
 
+    int sem_alimentatore_ready = semget(KEY_PROC_READY, 1, 0777);
+
     //numero atomico random
     int n_atom_rand = 0;
     
@@ -27,6 +29,8 @@ int main(int argc, char* argv[]){
     char* buf = malloc(1);
     //argv per execve Atomo.out
     char* argv_atomo[] = {"Atomo.out", buf, "7",min_n_atomico,pid_master,NULL};
+
+    releaseSem(sem_alimentatore_ready, 0);
 
     if(reserveSem(sem_start, 0) < 0){
         perror("reserveSem alimentatore atomo: ");

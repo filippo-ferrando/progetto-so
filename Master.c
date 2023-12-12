@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
     int i = 0;
 
-    char inibit_start = 'n';
+    char* inibit_start = malloc(8);
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]){
     struct stats *st;
 
     printf("Vuoi usare inibitore da subito?: (y/n)\n");
-    scanf("%c", &inibit_start);
+    fgets(inibit_start,sizeof(inibit_start),stdin);
 
     //semafori partenza simulazione
     int sem_master_ready; 
@@ -124,6 +124,14 @@ int main(int argc, char* argv[]){
     fprintf(ipcs_id, "%d\n", sem_master_ready);
     if(semctl(sem_master_ready, 0, SETVAL, 0) < 0){
         perror("semctl master ready");
+        exit(1);
+    }
+
+    int sem_proc_ready;
+    sem_proc_ready = semget(KEY_PROC_READY, 1, IPC_CREAT | 0777);
+    fprintf(ipcs_id, "%d\n", sem_proc_ready);
+    if(semctl(sem_proc_ready, 0, SETVAL, 0) < 0){
+        perror("semctl proc ready");
         exit(1);
     }
 
@@ -219,7 +227,7 @@ int main(int argc, char* argv[]){
     }
 
     //creazione processo inibitore; Argomenti: INIBIT_ATT
-    if(inibit_start == 'y'){
+    if(inibit_start == "y"){
         printf("Creo inibitore\n");
         char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
         if(fork() == 0){
@@ -257,6 +265,17 @@ int main(int argc, char* argv[]){
             break;
         }
         
+        
+    }
+
+    while(1){
+        if(inibit_start == "y"){
+            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+3)
+                break;
+        }else{
+            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+2)
+                break;
+        }
         
     }
 
