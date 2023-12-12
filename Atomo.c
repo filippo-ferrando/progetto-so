@@ -27,6 +27,11 @@ int main(int argc, char* argv[]){
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
+
+    //attach to message queue
+
+    int msgid = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con inibitore
+    struct message_buf messaggio;
     
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
@@ -42,7 +47,24 @@ int main(int argc, char* argv[]){
         }
     }
 
-    while(1){   
+    while(1){
+        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);
+
+        if(errno != ENOMSG){
+            //printf("atomo %d ricevuto messaggio\n", getpid());
+            printf("Scrapped by inibitor\n");
+            if(reserveSem(sem_sm, 9) < 0){
+                perror("reserveSem sm scrap_ls atomo: ");
+                exit(1);
+            }
+            st->scrap_ls++;
+            if(releaseSem(sem_sm, 9) < 0){
+                perror("releaseSem sm scrap_ls atomo: ");
+                exit(1);
+            }
+            exit(0);
+        }
+
         if(reserveSem(sem_att, 0) < 0){    
             printf("sem_att: %d\n", sem_att);        
             perror("reserveSem attivatore atomo: ");
@@ -55,7 +77,7 @@ int main(int argc, char* argv[]){
         n_atomico -= rand_soglia;
         
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
-        waitpid(-1, NULL, WNOHANG);
+        while(waitpid(-1, NULL, WNOHANG)>0);
 
         //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++
         if(n_atomico <= min_n_atomico){

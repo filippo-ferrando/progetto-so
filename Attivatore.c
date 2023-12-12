@@ -1,14 +1,6 @@
 #include "lib/generalLib.h"
 #include "lib/key.h"
 
-//handler per gestire segnale di pausa da inibitore
-
-//inibitore parla con attivatore attraverso una cosa di messaggi
-struct message_buff {
-    long mtype;
-    int mex;
-};
-
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int sem_sm = semget(KEY_SEM_SM, 10, 0777);
@@ -30,14 +22,6 @@ int main(int argc, char* argv[]){
     //numero di attivazioni che l'attivatore deve fare
     int n_attivazioni = 15;    //da definire metodo di decisione numero di attivazioni
 
-    int msgid = msgget(KEY_INHIB,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
-    struct message_buff messaggio; //Tiene il messaggio che riceve dall'inibitore
-    messaggio.mtype = 1; //mtype a 1 per comunicare con l'inibitore
-
-    //file per gestione rimozione di risorse ipc
-    FILE *ipcs_id_q = fopen("ipcs_id_q.txt", "a");
-    fprintf(ipcs_id_q, "%d\n", msgid);
-    fclose(ipcs_id_q);
 
     //attach to shared memory
     struct stats *st;

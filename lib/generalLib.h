@@ -87,6 +87,11 @@ int reserveSem(int semid, int n_sem){
     return 0;
 }
 
+struct message_buf{
+    long mtype;
+    int mex;
+};
+
 typedef struct stats {
     int activations_ls;
     int activations_total;

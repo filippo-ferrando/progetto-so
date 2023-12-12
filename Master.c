@@ -104,6 +104,8 @@ int main(int argc, char* argv[]){
 
     int i = 0;
 
+    char inibit_start = 'n';
+
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
@@ -112,6 +114,9 @@ int main(int argc, char* argv[]){
     FILE *ipcs_id2 = fopen("./ipcs_id_mem.txt","a");
 
     struct stats *st;
+
+    printf("Vuoi usare inibitore da subito?: (y/n)\n");
+    scanf("%c", &inibit_start);
 
     //semafori partenza simulazione
     int sem_master_ready; 
@@ -136,6 +141,13 @@ int main(int argc, char* argv[]){
 
     fclose(ipcs_id);
     fclose(ipcs_id2);
+
+    int msgid = msgget(KEY_INHIB,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
+
+    //file per gestione rimozione di risorse ipc
+    FILE *ipcs_id_q = fopen("ipcs_id_q.txt", "a");
+    fprintf(ipcs_id_q, "%d\n", msgid);
+    fclose(ipcs_id_q);
 
     st->activations_ls = 0;         //sem 0
     st->activations_total = 0;      //sem 1
@@ -205,18 +217,19 @@ int main(int argc, char* argv[]){
         default:
             break;
     }
-    /*
+
     //creazione processo inibitore; Argomenti: INIBIT_ATT
-    printf("Creo inibitore\n");
-    char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
-    if(fork() == 0){
-        if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
-            perror("execve");
-            exit(1);
+    if(inibit_start == 'y'){
+        printf("Creo inibitore\n");
+        char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
+        if(fork() == 0){
+            if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
+                perror("execve");
+                exit(1);
+            }
         }
-        
     }
-    */
+    
 
     //ciclo creazione processi atomo
     
