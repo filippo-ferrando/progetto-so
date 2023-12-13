@@ -44,10 +44,10 @@ int main(int argc, char* argv[]){
     st = shmat(shmid, NULL, 0);
 
     int actual_energy = 0;
+    int gravita_MTD = 0, gravita_EXP = 0;
 
-    int gravita_EXP = 0; //Aggiunto
     int energia_attuale = 0; //Aggiunto
-    int Energy_Threshold = atoi(env_get_ENERGY_EXPLODE_THRESHOLD()); //Aggiunto
+    int Energy_Threshold = atoi(argv[2]); // argv[2]
 
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
 
@@ -89,24 +89,23 @@ int main(int argc, char* argv[]){
             //CODICE INIBITORE
             //Faccio controlli sullo stato ogni mezzo secondo
             //usleep(atoi(argv[1]));
-            nanosleep(&remaining, &request);
+            
 
             energia_attuale = st->energy_created_total;
-            if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold) {
-                printf("\nRISCHIO EXP : 4\n");
+            //printf("Energia attuale: %d\n", energia_attuale);
+            if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
+                //printf("\nRISCHIO EXP : 4\n");
                 gravita_EXP = 4;
-            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
-                printf("\nRISCHIO EXP : 3\n");
+            }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
+                //printf("\nRISCHIO EXP : 3\n");
                 gravita_EXP = 3; 
-            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
-                printf("\nRISCHIO EXP : 2\n");
+            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
+                //printf("\nRISCHIO EXP : 2\n");
                 gravita_EXP = 2;
-                }
-            else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
-                printf("\nRISCHIO EXP : 1\n");
+            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
+                //printf("\nRISCHIO EXP : 1\n");
                 gravita_EXP = 1;
-                }
-            else{
+            }else{
                 gravita_EXP = 0;
 		    }
 
@@ -123,12 +122,14 @@ int main(int argc, char* argv[]){
             mex.mex = 0;
             mex.mtype = 3;
 
-            for(int i = 0; i < gravita_EXP * (rand() % 200 +1); i++){
+            for(int i = 0; i < gravita_EXP * (rand() % 300 +1); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore energia: ");
                 }
+                //printf("mando messaggio\n");
             }
         }
+        nanosleep(&remaining, &request);
     }
 }
 //Inizialmente dorme per tot secondi

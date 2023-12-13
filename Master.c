@@ -98,9 +98,9 @@ int main(int argc, char* argv[]){
     char* SIM_DURATION = env_get_SIM_DURATON();
     char* ENERGY_EXPLODE_THRESHOLD = env_get_ENERGY_EXPLODE_THRESHOLD();
     char* STEP = env_get_STEP();
-    char* INIBIT_ATT = env_get_INIBIT_ATT();
     char* INIBIT_CHECK = env_get_INIBIT_CHECK();
     char* ATT_STEP = env_get_ATT_STEP();
+    char* SPLIT_ATOMS = env_get_SPLIT_ATOMS();
 
     int i = 0;
 
@@ -164,19 +164,19 @@ int main(int argc, char* argv[]){
     fprintf(ipcs_id_q, "%d\n", msgid);
     fclose(ipcs_id_q);
 
-    st->activations_ls = 0;             //sem 0
-    st->activations_total = 0;          //sem 1
-    st->split_ls = 0;                   //sem 2
-    st->split_total = 0;                //sem 3
-    st->energy_created_ls = 0;          //sem 4
-    st->energy_created_total = 0;       //sem 5
-    st->energy_consumed_ls = 0;         //sem 6
-    st->energy_consumed_total = 0;      //sem 7
-    st->scrap = 0;                      //sem 8
-    st->scrap_ls = 0;                   //sem 9
-    st->scrap_inibitore = 0;            //sem 10
-    st->energy_absorbed_inibitore = 0;  //sem 11
-    st->current_atoms = 0;              //sem 12
+    st->activations_ls = 0;                 //sem 0
+    st->activations_total = 0;              //sem 1
+    st->split_ls = 0;                       //sem 2
+    st->split_total = 0;                    //sem 3
+    st->energy_created_ls = 0;              //sem 4
+    st->energy_created_total = 0;           //sem 5
+    st->energy_consumed_ls = 0;             //sem 6
+    st->energy_consumed_total = 0;          //sem 7
+    st->scrap = 0;                          //sem 8
+    st->scrap_ls = 0;                       //sem 9
+    st->scrap_inibitore = 0;                //sem 10
+    st->energy_absorbed_inibitore = 0;      //sem 11
+    st->current_atoms = atoi(N_ATOMI_INIT); //sem 12
 
     for(int i = 0; i < 13; i++){
         releaseSem(sem_sm_ready, i);
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]){
 
      //creazione processo attivatore; Argomenti: Nessuno
     printf("Creo attivatore\n");
-    char* argv_attivatore[] = {"Attivatore",ATT_STEP,NULL};
+    char* argv_attivatore[] = {"Attivatore",ATT_STEP,SPLIT_ATOMS,NULL};
     if(fork() == 0){
         if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
             perror("execve");
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]){
     //creazione processo inibitore; Argomenti: INIBIT_ATT
     if(inibit_start == 'y'){
         printf("Creo inibitore\n");
-        char* argv_inibitore[] = {"Inibitore",INIBIT_CHECK,NULL};
+        char* argv_inibitore[] = {"Inibitore",INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
         if(fork() == 0){
             if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
                 perror("execve");
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]){
     int n_atom_rand;
     
     //crezione processo atomo
-    for(i=0; i<=atoi(N_ATOMI_INIT); i++){
+    for(int i=0; i<=atoi(N_ATOMI_INIT); i++){
         srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
         //printf("atomo %d n atomico %d\n", i, n_atom_rand);
@@ -288,16 +288,14 @@ int main(int argc, char* argv[]){
         if(inibit_start == 'y'){
             //printf("%d\n", atoi(N_ATOMI_INIT)+3);
             //printf("%d\n", semctl(sem_proc_ready, 0, GETVAL));
-            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+3)
+            //sleep(1);
+            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+3){
                 break;
-            else
-                //printf("Loop 1\n");
-                continue;
+            }
         }else{
-            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+2)
+            if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+2){
                 break;
-            else
-                printf("Loop 2\n");
+            }
         }
         
     }
@@ -316,7 +314,7 @@ int main(int argc, char* argv[]){
     while(1){
         sleep(1);
         //semfori sm
-        for(int i = 0; i < 12; i++){
+        for(int i = 0; i < 13; i++){
             reserveSem(sem_sm_ready, i);
         }
 
@@ -345,7 +343,8 @@ int main(int argc, char* argv[]){
         printf("scarti: %d\n", st->scrap);
         printf("scarti last sec: %d\n\n", st->scrap_ls);
         printf("scarti inibitore: %d\n", st->scrap_inibitore);
-        printf("energia assorbita inibitore: %d\n", st->energy_absorbed_inibitore);
+        printf("energia assorbita inibitore: %d\n\n", st->energy_absorbed_inibitore);
+        printf("atomi attuali: %d\n", st->current_atoms);
         printf("--------------------------------------------------\n");
 
         st->energy_created_total = st->energy_created_total + st->energy_created_ls - atoi(ENERGY_DEMAND);
@@ -369,7 +368,7 @@ int main(int argc, char* argv[]){
             kill(getpid(),SIGUSR1);
         }
         //release all semaphores
-        for(int i = 0; i < 12; i++){
+        for(int i = 0; i < 13; i++){
             releaseSem(sem_sm_ready, i);
         }
 

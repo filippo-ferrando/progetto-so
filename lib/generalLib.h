@@ -8,10 +8,6 @@ char* env_get_N_ATOMI_INIT(){
     char* N_ATOMI_INIT = getenv("N_ATOMI_INIT");
     return N_ATOMI_INIT;
 }
-char* env_get_INIBIT_ATT(){
-    char* INIBIT_ATT = getenv("INIBIT_ATT");
-    return INIBIT_ATT;
-}
 
 char* env_get_INIBIT_CHECK(){
     char* INIBIT_CHECK = getenv("INIBIT_CHECK");
@@ -51,6 +47,16 @@ char* env_get_ATT_STEP(){
 char* env_get_STEP(){
     char* STEP = getenv("STEP");
     return STEP;
+}
+
+char* env_get_SPLIT_ATOMS(){
+    char* SPLIT_ATOMS = getenv("SPLIT_ATOMS");
+    return SPLIT_ATOMS;
+}
+
+char* env_get_MAX_PROCESS(){
+    char* MAX_PROCESS = getenv("MAX_PROCESS");
+    return MAX_PROCESS;
 }
 
 int releaseSem(int semid, int n_sem){

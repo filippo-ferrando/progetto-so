@@ -8,6 +8,8 @@ int main(int argc, char* argv[]){
     char* pid_master = argv[4]; //pid del processo Master.out
     char* min_n_atomico = argv[5];  //numero atomico minimo che può avere un atomo creato
 
+    int sem_sm = semget(KEY_SEM_SM, 13, 0777);
+
     //get semaforo sync-start
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
 
@@ -22,6 +24,10 @@ int main(int argc, char* argv[]){
     remaining.tv_nsec = step;
     //printf("\nstep: %d\n", step);
 
+    struct stats *st;
+    int shmid = shmget(KEY_SHM, sizeof(st), 0777);
+    st = shmat(shmid, NULL, 0);
+
     //variabile per ciclo for
     int i = 0;
 
@@ -30,7 +36,10 @@ int main(int argc, char* argv[]){
     //argv per execve Atomo.out
     char* argv_atomo[] = {"Atomo.out", buf, "7",min_n_atomico,pid_master,NULL};
 
-    releaseSem(sem_alimentatore_ready, 0);
+    if(releaseSem(sem_alimentatore_ready, 0) < 0){
+        perror("releaseSem alimentatore_ready alimentatore: ");
+        exit(1);
+    }
 
     if(reserveSem(sem_start, 0) < 0){
         perror("reserveSem alimentatore atomo: ");
@@ -57,6 +66,16 @@ int main(int argc, char* argv[]){
             sprintf(buf, "%d", n_atom_rand);
             strcpy(argv_atomo[1],buf);
 
+            if(reserveSem(sem_sm, 12) < 0){
+                perror("reserveSem sm atomi alimentatore: ");
+                exit(1);
+            }
+            st->current_atoms++;
+            if(releaseSem(sem_sm, 12) < 0){
+                perror("releaseSem sm atomi alimentatore: ");
+                exit(1);
+            }
+
             switch(fork()){
                 case -1:
                     //meltdown a causa di fork alimentatore
@@ -65,6 +84,7 @@ int main(int argc, char* argv[]){
                     exit(1);
                 case 0:
                     //Atomo.out creato da Alimentatore.out
+
                     if(execve("./Atomo.out", argv_atomo, NULL) < 0){
                         perror("execve alimentatore: ");
                         exit(1);

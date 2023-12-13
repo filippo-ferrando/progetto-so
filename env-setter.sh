@@ -4,6 +4,8 @@
 
 echo Setting necessary environment variables...
 
+processsLimit=$(ulimit -u)
+
 export ENERGY_DEMAND=500
 echo Setting ENERGY_DEMAND to $ENERGY_DEMAND
 
@@ -19,10 +21,10 @@ echo Setting MIN_N_ATOMICO to $MIN_N_ATOMICO
 export N_NUOVI_ATOMI=10
 echo Setting N_NUOVI_ATOMI to $N_NUOVI_ATOMI
 
-export SIM_DURATION=20
+export SIM_DURATION=70
 echo Setting SIM_DURATION to $SIM_DURATION
 
-export ENERGY_EXPLODE_THRESHOLD=1000000
+export ENERGY_EXPLODE_THRESHOLD=500000
 echo Setting ENERGY_EXPLODE_THRESHOLD to $ENERGY_EXPLODE_THRESHOLD
 
 export STEP=599999999
@@ -31,10 +33,13 @@ echo Setting STEP to $STEP
 export ATT_STEP=150000000
 echo Setting ATT_STEP to $ATT_STEP
 
-export INIBIT_ATT=1
-echo INIBITORE A $INIBIT_ATT
-
 export INIBIT_CHECK=500000000
 echo INIBIT_CHECK A $INIBIT_CHECK
+
+export SPLIT_ATOMS=15
+echo INIBIT_CHECK A $INIBIT_CHECK
+
+export MAX_PROCESS=$processsLimit
+echo Setting MAX_PROCESS to $MAX_PROCESS
 
 exec $SHELL -i

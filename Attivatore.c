@@ -6,7 +6,6 @@ int main(int argc, char* argv[]){
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
     int sem_attivatore_ready = semget(KEY_PROC_READY, 1, 0777);
 
-    //inizializzo semaforo attivatore a 0
     int sem_att = semget(KEY_ATT, 1, 0777);
 
     //file per gestione rimozione di risorse ipc
@@ -20,7 +19,7 @@ int main(int argc, char* argv[]){
     remaining.tv_nsec = atoi(argv[1]);  //0,15s da definire metodo di decisione tempo di attivazione
 
     //numero di attivazioni che l'attivatore deve fare
-    int n_attivazioni = 15;    //da definire metodo di decisione numero di attivazioni
+    int n_attivazioni = atoi(argv[2]);    //da definire metodo di decisione numero di attivazioni
 
 
     //attach to shared memory
@@ -28,7 +27,11 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
-    releaseSem(sem_attivatore_ready, 0);
+    if(releaseSem(sem_attivatore_ready, 0) < 0){
+        perror("releaseSem attivatore_ready attivatore: ");
+        exit(1);
+    }
+
 
     //sincronizzo attivatore con resto dei processi
     if(reserveSem(sem_start, 0) < 0){
@@ -36,7 +39,7 @@ int main(int argc, char* argv[]){
         exit(1);
     
     }
-    printf("SONO ATTIVATORE | HO PID %d\n", getpid());
+    //printf("SONO ATTIVATORE | HO PID %d\n", getpid());
 
     while(1){
         /* da implementare inibitore

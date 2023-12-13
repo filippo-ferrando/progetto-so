@@ -42,7 +42,10 @@ int main(int argc, char* argv[]){
     
     //se atomo viene creato da master deve aspettare il semaforo di start -> alimentatore setta bypass != 0 -> atomo bypassa semaforo
     if(bypass == 0){
-        releaseSem(sem_atom_start_ready, 0);
+        if(releaseSem(sem_atom_start_ready, 0) < 0){
+            perror("releaseSem atom_start_ready atomo: ");
+            exit(1);
+        }
         if(reserveSem(sem_start, 0) == -1){
             printf("sem_start: %d\n", sem_start);
             perror("reserveSem start master atomo: ");
@@ -72,10 +75,19 @@ int main(int argc, char* argv[]){
                 perror("reserveSem sm scrap atomo: ");
                 exit(1);
             }
+            if(reserveSem(sem_sm, 12) < 0){
+                perror("reserveSem sm atomi alimentatore: ");
+                exit(1);
+            }
             st->scrap_ls++;
+            st->current_atoms--;
             //printf("atomo %d scrap\n", getpid());
             if(releaseSem(sem_sm, 9) < 0){
                 perror("releaseSem sm scrap atomo: ");
+                exit(1);
+            }
+            if(releaseSem(sem_sm, 12) < 0){
+                perror("releaseSem sm atomi alimentatore: ");
                 exit(1);
             }
             exit(0);
@@ -95,6 +107,16 @@ int main(int argc, char* argv[]){
                 n_padre = n_atomico;
                 n_atomico = rand_soglia;
 
+                if(reserveSem(sem_sm, 12) < 0){
+                perror("reserveSem sm atomi alimentatore: ");
+                exit(1);
+                }
+                st->current_atoms++;
+                if(releaseSem(sem_sm, 12) < 0){
+                    perror("releaseSem sm atomi alimentatore: ");
+                    exit(1);
+                }
+
                 //entro in sezione critica di sm per  split e energy_created_ls
                 if(reserveSem(sem_sm, 2) < 0){
                     perror("reserveSem sm atomo: ");
@@ -107,8 +129,17 @@ int main(int argc, char* argv[]){
                 msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 3, IPC_NOWAIT); //se il messaggio che POSSO ricevere è tipo 3 -> l'energia rilasciata si dimezza
                 if(errno != ENOMSG){
                     //printf("atomo %d ricevuto messaggio\n", getpid());
-                    printf("atomo %d rilascia energia dimezzata\n", getpid());
-                    st->energy_created_ls += energy_released(n_atomico, n_padre) / 2;
+                    if(reserveSem(sem_sm, 11) < 0){
+                        perror("reserveSem sm atomi alimentatore: ");
+                        exit(1);
+                    }
+                    st->energy_absorbed_inibitore += energy_released(n_atomico, n_padre) * 2;
+                    if(releaseSem(sem_sm, 11) < 0){
+                        perror("releaseSem sm atomi alimentatore: ");
+                        exit(1);
+                    }
+                    //printf("atomo %d rilascia energia dimezzata\n", getpid());
+                    st->energy_created_ls -= energy_released(n_atomico, n_padre) / 2;
                 }else{
                     st->energy_created_ls += energy_released(n_atomico, n_padre);
                 }
@@ -133,7 +164,12 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm scrap_ls atomo: ");
                         exit(1);
                     }
+                    if(reserveSem(sem_sm, 12) < 0){
+                        perror("reserveSem sm atomi alimentatore: ");
+                        exit(1);
+                    }
                     printf("atomo %d scrap\n", getpid());
+                    st->current_atoms--;
                     st->scrap_ls++;
                     if(releaseSem(sem_sm, 9) < 0){
                         perror("releaseSem sm scrap_ls atomo: ");
