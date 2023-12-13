@@ -16,7 +16,7 @@ int main(int argc, char* argv[]){
     //printf("sem_start: %d\n", sem_start);
 
     //get semaforo sm
-    int sem_sm = semget(KEY_SEM_SM, 10, 0777);
+    int sem_sm = semget(KEY_SEM_SM, 13, 0777);
     //printf("sem_sm: %d\n", sem_sm);
     
     //get semaforo attivatore
@@ -51,22 +51,6 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
-
-        if(errno != ENOMSG){
-            //printf("atomo %d ricevuto messaggio\n", getpid());
-            if(reserveSem(sem_sm, 9) < 0){
-                perror("reserveSem sm scrap_ls atomo: ");
-                exit(1);
-            }
-            printf("atomo %d scrap\n", getpid());
-            st->scrap_ls++;
-            if(releaseSem(sem_sm, 9) < 0){
-                perror("releaseSem sm scrap_ls atomo: ");
-                exit(1);
-            }
-            exit(0);
-        }
 
         if(reserveSem(sem_att, 0) < 0){    
             printf("sem_att: %d\n", sem_att);        
@@ -139,6 +123,23 @@ int main(int argc, char* argv[]){
                 if(releaseSem(sem_sm, 4) < 0){
                     perror("releaseSem sm atomo: ");
                     exit(1);
+                }
+
+                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
+
+                if(errno != ENOMSG){
+                    //printf("atomo %d ricevuto messaggio\n", getpid());
+                    if(reserveSem(sem_sm, 9) < 0){
+                        perror("reserveSem sm scrap_ls atomo: ");
+                        exit(1);
+                    }
+                    printf("atomo %d scrap\n", getpid());
+                    st->scrap_ls++;
+                    if(releaseSem(sem_sm, 9) < 0){
+                        perror("releaseSem sm scrap_ls atomo: ");
+                        exit(1);
+                    }
+                    exit(0);
                 }
         }
         //nanosleep(&remaining, &request);

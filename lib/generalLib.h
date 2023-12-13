@@ -103,5 +103,8 @@ typedef struct stats {
     int energy_consumed_total;
     int scrap;
     int scrap_ls;
+    int scrap_inibitore;
+    int energy_absorbed_inibitore;
+    int current_atoms;
 }stats;
 

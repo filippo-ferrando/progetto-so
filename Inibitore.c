@@ -45,25 +45,31 @@ int main(int argc, char* argv[]){
 
     int actual_energy = 0;
 
-    int sem_sm = semget(KEY_SEM_SM, 10, 0777);
+    int gravita_EXP = 0; //Aggiunto
+    int energia_attuale = 0; //Aggiunto
+    int Energy_Threshold = atoi(env_get_ENERGY_EXPLODE_THRESHOLD()); //Aggiunto
+
+    int sem_sm = semget(KEY_SEM_SM, 13, 0777);
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = atoi(argv[2]);
+    remaining.tv_nsec = atoi(argv[1]);
 
     //Creo coda di messaggi per parlare con Atomo
     int msgid = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con inibitore
     struct message_buf mex;
     mex.mex = 0;
 
-    releaseSem(sem_inibitore_ready, 0);
+    if(releaseSem(sem_inibitore_ready, 0) < 0){
+        perror("releaseSem inibitore: ");
+        exit(1);
+    }
     
 
     if(reserveSem(sem_start, 0) < 0){ //Sincronizzo l'inibitore con il resto dei processi tramite semaforo.
         perror("reserveSem start inibitore: ");
         exit(1);
     }
-
     //sleep(1);
 
     /*
@@ -76,13 +82,35 @@ int main(int argc, char* argv[]){
     *   - NON FACCIO NIENTE
     */
 
+    srand(getpid()); //Spostato
+
     while(1){ 
         if(stato_inib == 1){
             //CODICE INIBITORE
-            srand(getpid());
-            //calcolo tempo random di invio del messaggio di atomo -to-> scrap e dormo
-            sleep(rand() % 5 + 1);
+            //Faccio controlli sullo stato ogni mezzo secondo
+            //usleep(atoi(argv[1]));
+            nanosleep(&remaining, &request);
 
+            energia_attuale = st->energy_created_total;
+            if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold) {
+                printf("\nRISCHIO EXP : 4\n");
+                gravita_EXP = 4;
+            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
+                printf("\nRISCHIO EXP : 3\n");
+                gravita_EXP = 3; 
+            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
+                printf("\nRISCHIO EXP : 2\n");
+                gravita_EXP = 2;
+                }
+            else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
+                printf("\nRISCHIO EXP : 1\n");
+                gravita_EXP = 1;
+                }
+            else{
+                gravita_EXP = 0;
+		    }
+
+/*Rimuovo MOMENTANEAMENTE le operazioni sul MELTDOWN
             mex.mex = 0;
             mex.mtype = 1;
 
@@ -91,23 +119,19 @@ int main(int argc, char* argv[]){
                     perror("msg send inibitore scrap: ");
                 }
             }
-
+*/
             mex.mex = 0;
             mex.mtype = 3;
 
-            for(int i = 0; i < rand() % 200 +1; i++){
+            for(int i = 0; i < gravita_EXP * (rand() % 200 +1); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore energia: ");
                 }
             }
-
-            
         }
     }
+}
 //Inizialmente dorme per tot secondi
 //Inibitore controlla statistiche ogni mezzo secondo
 //Se inibitore è attivo, controlla se le statistiche siano rispettate
 //Se si raggiunge meltdown, ferma l'attivatore
-
-    exit(0); 
-}

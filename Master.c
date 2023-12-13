@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
     int i = 0;
 
-    char* inibit_start = malloc(8);
+    char inibit_start;
 
     struct timespec remaining, request;
     remaining.tv_sec = 0;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]){
     struct stats *st;
 
     printf("Vuoi usare inibitore da subito?: (y/n)\n");
-    fgets(inibit_start,sizeof(inibit_start),stdin);
+    scanf("%c", &inibit_start);
 
     //semafori partenza simulazione
     int sem_master_ready; 
@@ -135,8 +135,15 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
+    int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
+    fprintf(ipcs_id, "%d\n", sem_att);
+    if(semctl(sem_att, 0, SETVAL, 0) < 0){
+        perror("semctl attivatore");
+        exit(1);
+    }
+
     //semaforo shared memory
-    int sem_sm_ready = semget(KEY_SEM_SM, 10, IPC_CREAT | 0777);
+    int sem_sm_ready = semget(KEY_SEM_SM, 13, IPC_CREAT | 0777);
     fprintf(ipcs_id, "%d\n", sem_sm_ready);
     for(int i=0; i<=9; i++){
         semctl(sem_sm_ready, i, SETVAL, 0);
@@ -157,17 +164,25 @@ int main(int argc, char* argv[]){
     fprintf(ipcs_id_q, "%d\n", msgid);
     fclose(ipcs_id_q);
 
-    st->activations_ls = 0;         //sem 0
-    st->activations_total = 0;      //sem 1
-    st->split_ls = 0;               //sem 2
-    st->split_total = 0;            //sem 3
-    st->energy_created_ls = 0;      //sem 4
-    st->energy_created_total = 0;   //sem 5
-    st->energy_consumed_ls = 0;     //sem 6
-    st->energy_consumed_total = 0;  //sem 7
-    st->scrap = 0;                  //sem 8
-    st->scrap_ls = 0;               //sem 9
+    st->activations_ls = 0;             //sem 0
+    st->activations_total = 0;          //sem 1
+    st->split_ls = 0;                   //sem 2
+    st->split_total = 0;                //sem 3
+    st->energy_created_ls = 0;          //sem 4
+    st->energy_created_total = 0;       //sem 5
+    st->energy_consumed_ls = 0;         //sem 6
+    st->energy_consumed_total = 0;      //sem 7
+    st->scrap = 0;                      //sem 8
+    st->scrap_ls = 0;                   //sem 9
+    st->scrap_inibitore = 0;            //sem 10
+    st->energy_absorbed_inibitore = 0;  //sem 11
+    st->current_atoms = 0;              //sem 12
 
+    for(int i = 0; i < 13; i++){
+        releaseSem(sem_sm_ready, i);
+    }
+
+    /*
     releaseSem(sem_sm_ready, 0);
     releaseSem(sem_sm_ready, 1);
     releaseSem(sem_sm_ready, 2);
@@ -178,6 +193,7 @@ int main(int argc, char* argv[]){
     releaseSem(sem_sm_ready, 7);
     releaseSem(sem_sm_ready, 8);
     releaseSem(sem_sm_ready, 9);
+    */
 
     //Creazione Handler
     struct sigaction sa;
@@ -227,9 +243,9 @@ int main(int argc, char* argv[]){
     }
 
     //creazione processo inibitore; Argomenti: INIBIT_ATT
-    if(inibit_start == "y"){
+    if(inibit_start == 'y'){
         printf("Creo inibitore\n");
-        char* argv_inibitore[] = {"Inibitore",INIBIT_ATT,INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
+        char* argv_inibitore[] = {"Inibitore",INIBIT_CHECK,NULL};
         if(fork() == 0){
             if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
                 perror("execve");
@@ -248,7 +264,7 @@ int main(int argc, char* argv[]){
     int n_atom_rand;
     
     //crezione processo atomo
-    for(i=0; i<atoi(N_ATOMI_INIT); i++){
+    for(i=0; i<=atoi(N_ATOMI_INIT); i++){
         srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
         //printf("atomo %d n atomico %d\n", i, n_atom_rand);
@@ -268,13 +284,20 @@ int main(int argc, char* argv[]){
         
     }
 
-    while(1){
-        if(inibit_start == "y"){
+    while(1){ 
+        if(inibit_start == 'y'){
+            //printf("%d\n", atoi(N_ATOMI_INIT)+3);
+            //printf("%d\n", semctl(sem_proc_ready, 0, GETVAL));
             if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+3)
                 break;
+            else
+                //printf("Loop 1\n");
+                continue;
         }else{
             if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+2)
                 break;
+            else
+                printf("Loop 2\n");
         }
         
     }
@@ -293,6 +316,11 @@ int main(int argc, char* argv[]){
     while(1){
         sleep(1);
         //semfori sm
+        for(int i = 0; i < 12; i++){
+            reserveSem(sem_sm_ready, i);
+        }
+
+        /*
         reserveSem(sem_sm_ready, 0);
         reserveSem(sem_sm_ready, 1);
         reserveSem(sem_sm_ready, 2);
@@ -303,6 +331,7 @@ int main(int argc, char* argv[]){
         reserveSem(sem_sm_ready, 7);
         reserveSem(sem_sm_ready, 8);
         reserveSem(sem_sm_ready, 9);
+        */
 
         printf("--------------------------------------------------\n");
         printf("attivazioni totali: %d\n", st->activations_total);
@@ -314,7 +343,9 @@ int main(int argc, char* argv[]){
         printf("energia totale consumata: %d\n", st->energy_consumed_total);
         printf("energia consumata last sec: %d\n\n", st->energy_consumed_ls);
         printf("scarti: %d\n", st->scrap);
-        printf("scarti last sec: %d\n", st->scrap_ls);
+        printf("scarti last sec: %d\n\n", st->scrap_ls);
+        printf("scarti inibitore: %d\n", st->scrap_inibitore);
+        printf("energia assorbita inibitore: %d\n", st->energy_absorbed_inibitore);
         printf("--------------------------------------------------\n");
 
         st->energy_created_total = st->energy_created_total + st->energy_created_ls - atoi(ENERGY_DEMAND);
@@ -338,16 +369,9 @@ int main(int argc, char* argv[]){
             kill(getpid(),SIGUSR1);
         }
         //release all semaphores
-        releaseSem(sem_sm_ready, 0);
-        releaseSem(sem_sm_ready, 1);
-        releaseSem(sem_sm_ready, 2);
-        releaseSem(sem_sm_ready, 3);
-        releaseSem(sem_sm_ready, 4);
-        releaseSem(sem_sm_ready, 5);
-        releaseSem(sem_sm_ready, 6);
-        releaseSem(sem_sm_ready, 7);
-        releaseSem(sem_sm_ready, 8);
-        releaseSem(sem_sm_ready, 9);
+        for(int i = 0; i < 12; i++){
+            releaseSem(sem_sm_ready, i);
+        }
 
         //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
         while(waitpid(-1, NULL, WNOHANG)>0);
