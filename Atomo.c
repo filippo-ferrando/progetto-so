@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 500000000;  //0,5s da definire metodo di decisione tempo di attivazione
+    remaining.tv_nsec = 200000000;  //0,5s da definire metodo di decisione tempo di attivazione
     
     //se atomo viene creato da master deve aspettare il semaforo di start -> alimentatore setta bypass != 0 -> atomo bypassa semaforo
     if(bypass == 0){
@@ -55,6 +55,9 @@ int main(int argc, char* argv[]){
 
     while(1){
 
+        //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
+        while(waitpid(-1, NULL, WNOHANG)>0);
+
         if(reserveSem(sem_att, 0) < 0){    
             printf("sem_att: %d\n", sem_att);        
             perror("reserveSem attivatore atomo: ");
@@ -66,10 +69,10 @@ int main(int argc, char* argv[]){
         rand_soglia = rand() % n_atomico + 1;
         n_atomico -= rand_soglia;
         
-        //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
         while(waitpid(-1, NULL, WNOHANG)>0);
 
         //controllo se n_atomico < MIN_N_ATOMICO -> se si cancello atomo -> scrap++
+        
         if(n_atomico <= min_n_atomico){
             if(reserveSem(sem_sm, 9) < 0){
                 perror("reserveSem sm scrap atomo: ");
@@ -92,6 +95,7 @@ int main(int argc, char* argv[]){
             }
             exit(0);
         }
+        
         //forko
         /*
         *IF LAST MSG_TYPE == 3 -> n_atomico (figlio) = 1 -> scrap++
@@ -106,6 +110,8 @@ int main(int argc, char* argv[]){
                 //printf("atomo figlio %d creato\n", getpid());
                 n_padre = n_atomico;
                 n_atomico = rand_soglia;
+
+                
 
                 if(reserveSem(sem_sm, 12) < 0){
                 perror("reserveSem sm atomi alimentatore: ");
@@ -133,7 +139,7 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm atomi alimentatore: ");
                         exit(1);
                     }
-                    st->energy_absorbed_inibitore += energy_released(n_atomico, n_padre) * 2;
+                    st->energy_absorbed_inibitore += energy_released(n_atomico, n_padre) / 2;
                     if(releaseSem(sem_sm, 11) < 0){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);

@@ -16,10 +16,10 @@ int main(int argc, char* argv[]){
     //struct per nanosleep
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = atoi(argv[1]);  //0,15s da definire metodo di decisione tempo di attivazione
+    remaining.tv_nsec = atoi(argv[1]);  
 
     //numero di attivazioni che l'attivatore deve fare
-    int n_attivazioni = atoi(argv[2]);    //da definire metodo di decisione numero di attivazioni
+    int n_attivazioni = atoi(argv[2]);    
 
 
     //attach to shared memory

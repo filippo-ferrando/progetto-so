@@ -82,9 +82,10 @@ int main(int argc, char* argv[]){
     *   - NON FACCIO NIENTE
     */
 
-    srand(getpid()); //Spostato
+    
 
-    while(1){ 
+    while(1){
+        srand(getpid());
         if(stato_inib == 1){
             //CODICE INIBITORE
             //Faccio controlli sullo stato ogni mezzo secondo
@@ -93,21 +94,32 @@ int main(int argc, char* argv[]){
 
             energia_attuale = st->energy_created_total;
             //printf("Energia attuale: %d\n", energia_attuale);
-            if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
+            if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
+                //printf("\nRISCHIO MTD : 10\n");
+                gravita_MTD = 20;
+            }else if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
                 //printf("\nRISCHIO EXP : 4\n");
-                gravita_EXP = 4;
-            }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
+                gravita_EXP = 10;
+            }else if(energia_attuale + (Energy_Threshold/12) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 3\n");
-                gravita_EXP = 3; 
-            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
+                gravita_EXP = 9; 
+            }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 2\n");
-                gravita_EXP = 2;
-            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
+                gravita_EXP = 8;
+            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 1\n");
+                gravita_EXP = 6;
+            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
+                gravita_EXP = 4;
+		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
+                gravita_EXP = 3;
+            }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
+                gravita_EXP = 2;
+            }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
                 gravita_EXP = 1;
             }else{
                 gravita_EXP = 0;
-		    }
+            }
 
 /*Rimuovo MOMENTANEAMENTE le operazioni sul MELTDOWN
             mex.mex = 0;
@@ -125,8 +137,8 @@ int main(int argc, char* argv[]){
             for(int i = 0; i < gravita_EXP * (rand() % 300 +1); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore energia: ");
+                    printf("errore");
                 }
-                //printf("mando messaggio\n");
             }
         }
         nanosleep(&remaining, &request);
