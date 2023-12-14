@@ -111,8 +111,7 @@ int main(int argc, char* argv[]){
                 n_padre = n_atomico;
                 n_atomico = rand_soglia;
 
-                
-
+                //AGGIORNO COUNTER ATOMI DOPO SCISSIONE
                 if(reserveSem(sem_sm, 12) < 0){
                 perror("reserveSem sm atomi alimentatore: ");
                 exit(1);
@@ -132,7 +131,9 @@ int main(int argc, char* argv[]){
                     perror("reserveSem sm atomo: ");
                     exit(1);
                 }
-                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 3, IPC_NOWAIT); //se il messaggio che POSSO ricevere è tipo 3 -> l'energia rilasciata si dimezza
+
+                //controllo se ultimo messaggio ricevuto è di tipo 3 -> se si -> energia viene prelevata
+                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 3, IPC_NOWAIT);
                 if(errno != ENOMSG){
                     //printf("atomo %d ricevuto messaggio\n", getpid());
                     if(reserveSem(sem_sm, 11) < 0){
@@ -149,7 +150,7 @@ int main(int argc, char* argv[]){
                 }else{
                     st->energy_created_ls += energy_released(n_atomico, n_padre);
                 }
-
+                //agggiorno counter di scissioni
                 st->split_ls++;
                 
                 //esco sezione critica di sm
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]){
                     perror("releaseSem sm atomo: ");
                     exit(1);
                 }
-
+                //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
                 msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
 
                 if(errno != ENOMSG){

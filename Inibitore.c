@@ -43,6 +43,8 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
+    int max_c_process = atoi(argv[3]);
+    int curr_process;
     int actual_energy = 0;
     int gravita_MTD = 0, gravita_EXP = 0;
 
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]){
     mex.mex = 0;
 
     if(releaseSem(sem_inibitore_ready, 0) < 0){
-        perror("releaseSem inibitore: ");
+        perror("releaseSem inibitore ready: ");
         exit(1);
     }
     
@@ -91,8 +93,15 @@ int main(int argc, char* argv[]){
             //Faccio controlli sullo stato ogni mezzo secondo
             //usleep(atoi(argv[1]));
             
-
+            if(reserveSem(sem_sm, 0) < 5){
+                perror("reserveSem inibitore energy total: ");
+                exit(1);
+            }
             energia_attuale = st->energy_created_total;
+            if(releaseSem(sem_sm, 0) < 5){
+                perror("reserveSem inibitore energy total: ");
+                exit(1);
+            }
             //printf("Energia attuale: %d\n", energia_attuale);
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
                 //printf("\nRISCHIO MTD : 10\n");
@@ -121,16 +130,37 @@ int main(int argc, char* argv[]){
                 gravita_EXP = 0;
             }
 
-/*Rimuovo MOMENTANEAMENTE le operazioni sul MELTDOWN
+            curr_process = st->current_atoms;
+
+            if(curr_process > max_c_process/4){
+                printf("\nRischio MTD: 10");
+                gravita_MTD=10;
+            }
+            else if(curr_process > max_c_process/3){
+                printf("\nRischio MTD: 7\n");
+                gravita_MTD = 7;
+            }
+            else if(curr_process > max_c_process/2){
+                printf("\nRischio MTD: 4");
+                gravita_MTD = 4;
+            }
+            else{
+                printf("\nRischio MTD: 0");
+                gravita_MTD = 0;
+            }
+
+
+
             mex.mex = 0;
             mex.mtype = 1;
 
-            for(int i = 0; i < rand() % 100 +1; i++){
+            for(int i = 0; i < gravita_MTD/3 * (rand() % (gravita_MTD * 100) +1); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore scrap: ");
                 }
             }
-*/
+
+
             mex.mex = 0;
             mex.mtype = 3;
 

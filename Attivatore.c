@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     st = shmat(shmid, NULL, 0);
     
     if(releaseSem(sem_attivatore_ready, 0) < 0){
-        perror("releaseSem attivatore_ready attivatore: ");
+        perror("releaseSem attivatore ready: ");
         exit(1);
     }
 
@@ -42,20 +42,6 @@ int main(int argc, char* argv[]){
     //printf("SONO ATTIVATORE | HO PID %d\n", getpid());
 
     while(1){
-        /* da implementare inibitore
-
-        msgrcv(msgid,&messaggio,sizeof(messaggio) - sizeof(long),1,0); //Dopo che leggo un messaggio, svuoto coda di messaggi.
-        if(messaggio.mex == 0){  //Se leggo 1 dall'inibitore procedo, altrimenti sto aspetto di ricevere quel valore dalla receive
-            printf("attivatore riceve 0\n");
-            sleep(1);
-            //svuota coda di messaggi
-        }else if(messaggio.mex == 1){
-            printf("attivatore riceve 1\n");
-            sleep(5);
-            //svuota coda di messaggi
-        }
-
-        */
         //riservo semaforo di sm per scrivere n attivazione
         if(reserveSem(sem_sm, 0) < 0){
             perror("reserveSem sm attivazioni attivatore: ");
@@ -75,8 +61,6 @@ int main(int argc, char* argv[]){
 
         nanosleep(&remaining, &request);
         
-    }
-    //printf("SEM VAL attivatore: %d\n", semctl(semid, 0, GETVAL));
-    
+    }    
     exit(0);
 }

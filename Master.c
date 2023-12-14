@@ -101,6 +101,7 @@ int main(int argc, char* argv[]){
     char* INIBIT_CHECK = env_get_INIBIT_CHECK();
     char* ATT_STEP = env_get_ATT_STEP();
     char* SPLIT_ATOMS = env_get_SPLIT_ATOMS();
+    char* MAX_PROCESS = env_get_MAX_PROCESS();
 
     int i = 0;
 
@@ -245,7 +246,7 @@ int main(int argc, char* argv[]){
     //creazione processo inibitore; Argomenti: INIBIT_ATT
     if(inibit_start == 'y'){
         printf("Creo inibitore\n");
-        char* argv_inibitore[] = {"Inibitore",INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,NULL};
+        char* argv_inibitore[] = {"Inibitore",INIBIT_CHECK,ENERGY_EXPLODE_THRESHOLD,MAX_PROCESS,NULL};
         if(fork() == 0){
             if(execve("./Inibitore.out",argv_inibitore,NULL) < 0){
                 perror("execve");

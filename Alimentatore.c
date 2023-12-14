@@ -37,12 +37,12 @@ int main(int argc, char* argv[]){
     char* argv_atomo[] = {"Atomo.out", buf, "7",min_n_atomico,pid_master,NULL};
 
     if(releaseSem(sem_alimentatore_ready, 0) < 0){
-        perror("releaseSem alimentatore_ready alimentatore: ");
+        perror("releaseSem alimentatore ready: ");
         exit(1);
     }
 
     if(reserveSem(sem_start, 0) < 0){
-        perror("reserveSem alimentatore atomo: ");
+        perror("reserveSem alimentatore master ready: ");
         exit(1);
     }
 
@@ -67,12 +67,12 @@ int main(int argc, char* argv[]){
             strcpy(argv_atomo[1],buf);
 
             if(reserveSem(sem_sm, 12) < 0){
-                perror("reserveSem sm atomi alimentatore: ");
+                perror("reserveSem sm current_atoms alimentatore: ");
                 exit(1);
             }
             st->current_atoms++;
             if(releaseSem(sem_sm, 12) < 0){
-                perror("releaseSem sm atomi alimentatore: ");
+                perror("releaseSem sm current_atoms alimentatore: ");
                 exit(1);
             }
 
