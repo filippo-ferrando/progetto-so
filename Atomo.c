@@ -197,10 +197,10 @@ int main(int argc, char* argv[]){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }
-                    while(waitpid(-1, NULL, WNOHANG)>0);
-                    exit(0);
+                    exit(0);                    
                 }
         }
+        while(waitpid(-1, NULL, 0)>0);
         //nanosleep(&remaining, &request);
     }
     exit(0);

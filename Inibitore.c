@@ -228,7 +228,7 @@ int main(int argc, char* argv[]){
             mex.mex = 0;
             mex.mtype = 1;
 
-            for(int i = 0; i < gravita_MTD * ((rand() % max_MTD - min_MTD + 1) + min_MTD); i++){
+            for(int i = 0; i < gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore scrap: ");
                 }
