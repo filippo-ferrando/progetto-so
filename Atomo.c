@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 100000000;  //0,5s da definire metodo di decisione tempo di attivazione
+    remaining.tv_nsec = 300000000;  //0,5s da definire metodo di decisione tempo di attivazione
     
     //se atomo viene creato da master deve aspettare il semaforo di start -> alimentatore setta bypass != 0 -> atomo bypassa semaforo
     if(bypass == 0){
@@ -197,6 +197,7 @@ int main(int argc, char* argv[]){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    while(waitpid(-1, NULL, WNOHANG)>0);
                     exit(0);
                 }
         }

@@ -2,7 +2,6 @@
 #include "lib/key.h"
 
 void handle_SIGUSR1(int signal){
-    printf("alimentatore: Mi spengo");
     exit(0);
 }
 

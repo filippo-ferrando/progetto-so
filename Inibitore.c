@@ -47,6 +47,8 @@ int main(int argc, char* argv[]){
     int curr_process;
     int actual_energy = 0;
     int gravita_MTD = 0, gravita_EXP = 0;
+    int min_MTD = 0, min_EXP = 0;
+    int max_MTD = 0, max_EXP = 0;
 
     int energia_attuale = 0; //Aggiunto
     int Energy_Threshold = atoi(argv[2]); // argv[2]
@@ -89,6 +91,7 @@ int main(int argc, char* argv[]){
 
     while(1){
         if(stato_inib == 1){
+            //printf("ciclo\n");
             //CODICE INIBITORE
             //Faccio controlli sullo stato ogni mezzo secondo
             //usleep(atoi(argv[1]));
@@ -108,35 +111,55 @@ int main(int argc, char* argv[]){
             //printf("Energia attuale: %d\n", energia_attuale);
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
                 //printf("\nRISCHIO MTD : 10\n");
-                gravita_MTD = 20;
+                gravita_EXP = 30;
+                min_EXP = 250;
+                max_EXP = 400;
             }else if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
                 //printf("\nRISCHIO EXP : 4\n");
-                gravita_EXP = 10;
+                gravita_EXP = 25;
+                min_EXP = 200;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/12) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 3\n");
-                gravita_EXP = 9; 
+                gravita_EXP = 15;
+                min_EXP = 150;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 2\n");
-                gravita_EXP = 8;
+                gravita_EXP = 9;
+                min_EXP = 115;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 1\n");
-                gravita_EXP = 5;
+                gravita_EXP = 7;
+                min_EXP = 100;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
-                gravita_EXP = 3;
+                gravita_EXP = 6;
+                min_EXP = 100;
+                max_EXP = 300;
 		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
-                gravita_EXP = 2;
+                gravita_EXP = 4;
+                min_EXP = 100;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
-                gravita_EXP = 1;
+                gravita_EXP = 0;
+                min_EXP = 50;
+                max_EXP = 300;
             }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
-                gravita_EXP = 1;
+                gravita_EXP = 0;
+                min_EXP = 25;
+                max_EXP = 300;
             }else{
                 gravita_EXP = 0;
+                min_EXP = 1;
+                max_EXP = 300;
             }
 
             mex.mex = 0;
             mex.mtype = 3;
 
-            for(int i = 0; i < gravita_EXP * (rand() % 300 +1); i++){
+            for(int i = 0; i < gravita_EXP * ((rand() % max_EXP - min_EXP + 1) + min_EXP); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore energia: ");
                     printf("errore");
@@ -145,21 +168,59 @@ int main(int argc, char* argv[]){
 
             curr_process = st->current_atoms;
     
-            if(curr_process > max_c_process/4){
+            if(curr_process > max_c_process/2){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD=6;
-            }
-            else if(curr_process > max_c_process/6){
+                gravita_MTD = 67;
+                min_MTD = 600;
+                max_MTD = 700;
+            }else if(curr_process > max_c_process/4){
+                //printf("\nRischio MTD: 10");
+                gravita_MTD = 53;
+                min_MTD = 500;
+                max_MTD = 600;
+            }else if(curr_process > max_c_process/5){
+                gravita_MTD = 30;
+                min_MTD = 400;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/6){
                 //printf("\nRischio MTD: 7\n");
-                gravita_MTD = 4;
-            }
-            else if(curr_process > max_c_process/8){
+                gravita_MTD = 18;
+                min_MTD = 350;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/7){
+                //printf("\nRischio MTD: 6");
+                gravita_MTD = 16;
+                min_MTD = 300;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/8){
                 //printf("\nRischio MTD: 4");
-                gravita_MTD = 2;
-            }
-            else{
+                gravita_MTD = 14;
+                min_MTD = 300;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/10){
                 //printf("\nRischio MTD: 0");
+                gravita_MTD = 12;
+                min_MTD = 250;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/15){
+                //printf("\nRischio MTD: 0");
+                gravita_MTD = 10;
+                min_MTD = 150;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/20){
+                //printf("\nRischio MTD: 0");
+                gravita_MTD = 6;
+                min_MTD = 100;
+                max_MTD = 500;
+            }else if(curr_process > max_c_process/30){
+                //printf("\nRischio MTD: 0");
+                gravita_MTD = 6;
+                min_MTD = 100;
+                max_MTD = 500;
+            }else{
                 gravita_MTD = 0;
+                min_MTD = 1;
+                max_MTD = 500;
             }
             
 
@@ -167,7 +228,7 @@ int main(int argc, char* argv[]){
             mex.mex = 0;
             mex.mtype = 1;
 
-            for(int i = 0; i < gravita_MTD * (rand() % 200 +1); i++){
+            for(int i = 0; i < gravita_MTD * ((rand() % max_MTD - min_MTD + 1) + min_MTD); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore scrap: ");
                 }
