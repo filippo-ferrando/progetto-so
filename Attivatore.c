@@ -1,6 +1,11 @@
 #include "lib/generalLib.h"
 #include "lib/key.h"
 
+void handle_SIGUSR1(int signal){
+    printf("attivatore: Mi spengo");
+    exit(0);
+}
+
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
@@ -21,6 +26,10 @@ int main(int argc, char* argv[]){
     //numero di attivazioni che l'attivatore deve fare
     int n_attivazioni = atoi(argv[2]);    
 
+    struct sigaction sa; //Aggiunta ora
+    bzero(&sa, sizeof(sa)); //Aggiunta ora
+	sa.sa_handler = handle_SIGUSR1; //Aggiunta ora
+    sigaction(SIGUSR1, &sa, NULL); //Aggiunta ora
 
     //attach to shared memory
     struct stats *st;

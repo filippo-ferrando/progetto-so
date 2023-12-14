@@ -1,6 +1,11 @@
 #include "lib/generalLib.h"
 #include "lib/key.h"
 
+void handle_SIGUSR1(int signal){
+    printf("alimentatore: Mi spengo");
+    exit(0);
+}
+
 int main(int argc, char* argv[]){
     int step = atoi(argv[1]);   //step in nanosecondi
     int n_nuovi_atomi = atoi(argv[2]);  //numero di atomi da creare a ogni step
@@ -23,6 +28,13 @@ int main(int argc, char* argv[]){
     remaining.tv_sec = 0;
     remaining.tv_nsec = step;
     //printf("\nstep: %d\n", step);
+    
+    struct sigaction sa; //Aggiunta ora
+    bzero(&sa, sizeof(sa)); //Aggiunta ora
+	sa.sa_handler = handle_SIGUSR1; //Aggiunta ora
+    sigaction(SIGUSR1, &sa, NULL); //Aggiunta ora
+
+
 
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);

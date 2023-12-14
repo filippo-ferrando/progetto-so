@@ -2,6 +2,7 @@
 #include "lib/key.h"
 
 int alarm_rt = 0;
+pid_t pid_alimentatore,pid_attivatore;
 
 
 void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore, Alimentatore, Atomo e Attivatore
@@ -67,8 +68,15 @@ void handle_usr2(int signal){ //segnale di meltdown
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
+
     printf("MELTDOWN");
 
+    kill(pid_attivatore,SIGUSR1);
+    kill(pid_alimentatore,SIGUSR1);
+
+    nanosleep(&remaining, &request);
+
+    while(waitpid(-1, NULL, WNOHANG)>0);
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
     if(fork() == 0){
         if(execve("/usr/bin/killall",proc_names,NULL) < 0){
@@ -77,18 +85,19 @@ void handle_usr2(int signal){ //segnale di meltdown
         }
         exit(0);
     }
+
     while(waitpid(-1, NULL, WNOHANG)>0);
+
     nanosleep(&remaining, &request);
-    if(fork() == 0){
-        char* argv[] = {"killer.sh",NULL};
-        if(execve("./lib/killer.sh",argv,NULL) < 0){
-            perror("execve timeout killer: ");
-            exit(1);
-        }
-        exit(0);
+
+    char* argv[] = {"killer.sh",NULL};
+    if(execve("./lib/killer.sh",argv,NULL) < 0){
+        perror("execve timeout killer: ");
+        exit(1);
     }
     exit(0);
 }
+
 
 int main(int argc, char* argv[]){
     char* ENERGY_DEMAND = env_get_ENERGY_DEMAND();
@@ -217,12 +226,18 @@ int main(int argc, char* argv[]){
      //creazione processo attivatore; Argomenti: Nessuno
     printf("Creo attivatore\n");
     char* argv_attivatore[] = {"Attivatore",ATT_STEP,SPLIT_ATOMS,NULL};
-    if(fork() == 0){
-        if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
-            perror("execve");
+    switch(fork()){
+        case -1:
+            perror("fork");
             exit(1);
-        }
-        
+        case 0:
+            pid_attivatore = getpid(); //Aggiu
+            if(execve("./Attivatore.out",argv_attivatore,NULL) < 0){
+                perror("execve");
+                exit(1);
+            }
+        default:
+            break;
     }
 
     //creazione processo alimentatore; Argomenti: STEP
@@ -235,6 +250,7 @@ int main(int argc, char* argv[]){
             perror("fork");
             exit(1);
         case 0:
+            pid_alimentatore=getpid(); //Aggiunto Ora
             switch(execve("./Alimentatore.out",argv_alimentatore,NULL)){
                 case -1:
                     perror("execve");

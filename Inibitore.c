@@ -11,12 +11,12 @@ int stato_inib; //Se inib vale 0, è spento, invia messaggio 0 ad attivatore, ch
 
 
 void handle_SIGUSR1(int signal){ //Se ricevo SIGUSR1, spengo l'inibitore
-    //printf("Ho ricevuto SIGUSR1\n");
+    printf("\nDISATTIVO INIBITORE\n");
     stato_inib = 0;
 }
 
 void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
-    //printf("Ho ricevuto SIGUSR2\n");
+    printf("\nATTIVO ATTIVATORE\n");
     stato_inib = 1;
 }
 
@@ -147,15 +147,15 @@ int main(int argc, char* argv[]){
     
             if(curr_process > max_c_process/4){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD=10;
+                gravita_MTD=6;
             }
             else if(curr_process > max_c_process/6){
                 //printf("\nRischio MTD: 7\n");
-                gravita_MTD = 7;
+                gravita_MTD = 4;
             }
             else if(curr_process > max_c_process/8){
                 //printf("\nRischio MTD: 4");
-                gravita_MTD = 4;
+                gravita_MTD = 2;
             }
             else{
                 //printf("\nRischio MTD: 0");
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]){
 
         if(nanosleep(&remaining, &request) < 0){
             perror("nanosleep inibitore: ");
-            exit(1);
+            //exit(1);
         }
     }
 }
