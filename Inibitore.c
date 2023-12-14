@@ -93,15 +93,18 @@ int main(int argc, char* argv[]){
             //Faccio controlli sullo stato ogni mezzo secondo
             //usleep(atoi(argv[1]));
             
-            if(reserveSem(sem_sm, 0) < 5){
+            if(reserveSem(sem_sm, 5) < 0){
                 perror("reserveSem inibitore energy total: ");
                 exit(1);
             }
+            
             energia_attuale = st->energy_created_total;
-            if(releaseSem(sem_sm, 0) < 5){
+            
+            if(releaseSem(sem_sm, 5) < 0){
                 perror("reserveSem inibitore energy total: ");
                 exit(1);
             }
+            
             //printf("Energia attuale: %d\n", energia_attuale);
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
                 //printf("\nRISCHIO MTD : 10\n");
