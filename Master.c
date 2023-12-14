@@ -375,7 +375,7 @@ int main(int argc, char* argv[]){
         st->split_ls = 0;
         st->energy_created_ls = 0;
         st->scrap_ls = 0;
-
+/*
         if(st->energy_created_total > atoi(ENERGY_EXPLODE_THRESHOLD)){   //explode, ho creato più energia che io riesca a gestire
             printf("Esco per Explode\n");
             kill(getpid(),SIGUSR1);
@@ -385,6 +385,7 @@ int main(int argc, char* argv[]){
             printf("Esco per Blackout");
             kill(getpid(),SIGUSR1);
         }
+        */
         //release all semaphores
         for(int i = 0; i < 13; i++){
             releaseSem(sem_sm_ready, i);
