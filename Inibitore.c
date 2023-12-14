@@ -85,26 +85,26 @@ int main(int argc, char* argv[]){
     */
 
     
+        srand(getpid());
 
     while(1){
-        srand(getpid());
         if(stato_inib == 1){
             //CODICE INIBITORE
             //Faccio controlli sullo stato ogni mezzo secondo
             //usleep(atoi(argv[1]));
-            
+            /*
             if(reserveSem(sem_sm, 5) < 0){
                 perror("reserveSem inibitore energy total: ");
                 exit(1);
             }
-            
+            */
             energia_attuale = st->energy_created_total;
-            
+            /*
             if(releaseSem(sem_sm, 5) < 0){
                 perror("reserveSem inibitore energy total: ");
                 exit(1);
             }
-            
+            */
             //printf("Energia attuale: %d\n", energia_attuale);
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
                 //printf("\nRISCHIO MTD : 10\n");
@@ -120,49 +120,18 @@ int main(int argc, char* argv[]){
                 gravita_EXP = 8;
             }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 1\n");
-                gravita_EXP = 6;
+                gravita_EXP = 5;
             }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
-                gravita_EXP = 4;
-		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
                 gravita_EXP = 3;
-            }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
+		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
                 gravita_EXP = 2;
+            }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
+                gravita_EXP = 1;
             }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
                 gravita_EXP = 1;
             }else{
                 gravita_EXP = 0;
             }
-
-            curr_process = st->current_atoms;
-
-            if(curr_process > max_c_process/4){
-                printf("\nRischio MTD: 10");
-                gravita_MTD=10;
-            }
-            else if(curr_process > max_c_process/3){
-                printf("\nRischio MTD: 7\n");
-                gravita_MTD = 7;
-            }
-            else if(curr_process > max_c_process/2){
-                printf("\nRischio MTD: 4");
-                gravita_MTD = 4;
-            }
-            else{
-                printf("\nRischio MTD: 0");
-                gravita_MTD = 0;
-            }
-
-
-
-            mex.mex = 0;
-            mex.mtype = 1;
-
-            for(int i = 0; i < gravita_MTD/3 * (rand() % (gravita_MTD * 100) +1); i++){
-                if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
-                    perror("msg send inibitore scrap: ");
-                }
-            }
-
 
             mex.mex = 0;
             mex.mtype = 3;
@@ -173,8 +142,46 @@ int main(int argc, char* argv[]){
                     printf("errore");
                 }
             }
+
+            curr_process = st->current_atoms;
+    
+            if(curr_process > max_c_process/4){
+                //printf("\nRischio MTD: 10");
+                gravita_MTD=10;
+            }
+            else if(curr_process > max_c_process/6){
+                //printf("\nRischio MTD: 7\n");
+                gravita_MTD = 7;
+            }
+            else if(curr_process > max_c_process/8){
+                //printf("\nRischio MTD: 4");
+                gravita_MTD = 4;
+            }
+            else{
+                //printf("\nRischio MTD: 0");
+                gravita_MTD = 0;
+            }
+            
+
+
+            mex.mex = 0;
+            mex.mtype = 1;
+
+            for(int i = 0; i < gravita_MTD * (rand() % 200 +1); i++){
+                if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
+                    perror("msg send inibitore scrap: ");
+                }
+                //printf("\nmessaggio mandato\n");
+            }
+
+
+            
         }
-        nanosleep(&remaining, &request);
+
+        if(nanosleep(&remaining, &request) < 0){
+            perror("nanosleep inibitore: ");
+            exit(1);
+        }
     }
 }
 //Inizialmente dorme per tot secondi

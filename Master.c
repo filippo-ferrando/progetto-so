@@ -66,7 +66,7 @@ void handle_usr2(int signal){ //segnale di meltdown
     int i;
     struct timespec remaining, request;
     remaining.tv_sec = 0;
-    remaining.tv_nsec = 250000000;
+    remaining.tv_nsec = 500000000;
     printf("MELTDOWN");
 
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
@@ -77,6 +77,7 @@ void handle_usr2(int signal){ //segnale di meltdown
         }
         exit(0);
     }
+    while(waitpid(-1, NULL, WNOHANG)>0);
     nanosleep(&remaining, &request);
     if(fork() == 0){
         char* argv[] = {"killer.sh",NULL};
