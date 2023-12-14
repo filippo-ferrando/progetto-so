@@ -112,13 +112,13 @@ int main(int argc, char* argv[]){
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
                 //printf("\nRISCHIO MTD : 10\n");
                 gravita_EXP = 30;
-                min_EXP = 250;
-                max_EXP = 400;
+                min_EXP = 500;
+                max_EXP = 700;
             }else if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
                 //printf("\nRISCHIO EXP : 4\n");
                 gravita_EXP = 25;
-                min_EXP = 200;
-                max_EXP = 300;
+                min_EXP = 400;
+                max_EXP = 500;
             }else if(energia_attuale + (Energy_Threshold/12) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 3\n");
                 gravita_EXP = 15;
@@ -127,8 +127,8 @@ int main(int argc, char* argv[]){
             }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 2\n");
                 gravita_EXP = 9;
-                min_EXP = 115;
-                max_EXP = 300;
+                min_EXP = 500;
+                max_EXP = 700;
             }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
                 //printf("\nRISCHIO EXP : 1\n");
                 gravita_EXP = 7;
@@ -143,13 +143,13 @@ int main(int argc, char* argv[]){
                 min_EXP = 100;
                 max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
-                gravita_EXP = 0;
+                gravita_EXP = 2;
                 min_EXP = 50;
-                max_EXP = 300;
+                max_EXP = 200;
             }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
-                gravita_EXP = 0;
+                gravita_EXP = 1;
                 min_EXP = 25;
-                max_EXP = 300;
+                max_EXP = 200;
             }else{
                 gravita_EXP = 0;
                 min_EXP = 1;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
             }else if(curr_process > max_c_process/20){
                 //printf("\nRischio MTD: 0");
-                gravita_MTD = 6;
+                gravita_MTD = 8;
                 min_MTD = 100;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/30){
@@ -222,13 +222,11 @@ int main(int argc, char* argv[]){
                 min_MTD = 1;
                 max_MTD = 500;
             }
-            
-
 
             mex.mex = 0;
             mex.mtype = 1;
 
-            for(int i = 0; i < gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD); i++){
+            for(int i = 0; i < gravita_MTD * ((rand() % max_MTD - min_MTD + 1) + min_MTD); i++){
                 if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore scrap: ");
                 }
