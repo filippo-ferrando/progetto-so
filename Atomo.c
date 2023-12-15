@@ -25,14 +25,21 @@ int main(int argc, char* argv[]){
 
     int sem_atom_start_ready = semget(KEY_PROC_READY, 1, 0777);
 
+    int sem_sm_atom = semget(KEY_SEM_SM_ATOM, 1, 0777);
+
     //attach to shared memory
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
+    //sm only for atom
+    struct atoms *st_atom;
+    int shmid_atom = shmget(KEY_SHM_ATOM, sizeof(st_atom), 0777);
+    st_atom = shmat(shmid_atom, NULL, 0);
+
     //attach to message queue
 
-    int msgid = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con inibitore
+    int msgid = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
     struct message_buf messaggio;
     
     //struct per nanosleep -> 0,5s
@@ -63,6 +70,21 @@ int main(int argc, char* argv[]){
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }
+
+        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
+        if(errno != ENOMSG){
+            if(reserveSem(sem_sm_atom, 0) < 0){
+                perror("reserveSem sm atom atomo: ");
+                exit(1);
+            }
+            st_atom->n = messaggio.mex; 
+            if(releaseSem(sem_sm_atom, 0) < 0){
+                perror("releaseSem sm atom atomo: ");
+                exit(1);
+            }
+        }
+
+
 
         //calcolo numero atomico
         srand(getpid());
@@ -133,23 +155,7 @@ int main(int argc, char* argv[]){
                 }
 
                 //controllo se ultimo messaggio ricevuto è di tipo 3 -> se si -> energia viene prelevata
-                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 3, IPC_NOWAIT);
-                if(errno != ENOMSG){
-                    //printf("atomo %d ricevuto messaggio\n", getpid());
-                    if(reserveSem(sem_sm, 11) < 0){
-                        perror("reserveSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    st->energy_absorbed_inibitore += energy_released(n_atomico, n_padre) / 2;
-                    if(releaseSem(sem_sm, 11) < 0){
-                        perror("releaseSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    //printf("atomo %d rilascia energia dimezzata\n", getpid());
-                    st->energy_created_ls -= energy_released(n_atomico, n_padre) / 2;
-                }else{
-                    st->energy_created_ls += energy_released(n_atomico, n_padre);
-                }
+                st->energy_created_ls += energy_released(n_atomico, n_padre);
                 //agggiorno counter di scissioni
                 st->split_ls++;
                 
@@ -163,9 +169,8 @@ int main(int argc, char* argv[]){
                     exit(1);
                 }
                 //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
-                msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
 
-                if(errno != ENOMSG){
+                if(st_atom->n > 0){
                     //printf("atomo %d ricevuto messaggio\n", getpid());
                     if(reserveSem(sem_sm, 9) < 0){
                         perror("reserveSem sm scrap_ls atomo: ");
@@ -179,8 +184,12 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    if(reserveSem(sem_sm_atom, 0) < 0){
+                        perror("reserveSem sm atomi alimentatore: ");
+                        exit(1);
+                    }
                     //printf("atomo %d scrap\n", getpid());
-
+                    st_atom->n--;
                     st->current_atoms--;
                     st->scrap_inibitore++;
                     st->scrap_ls++;
@@ -194,6 +203,10 @@ int main(int argc, char* argv[]){
                         exit(1);
                     }
                     if(releaseSem(sem_sm, 10) < 0){
+                        perror("releaseSem sm atomi alimentatore: ");
+                        exit(1);
+                    }
+                    if(releaseSem(sem_sm_atom, 0) < 0){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }

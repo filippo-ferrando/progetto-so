@@ -64,7 +64,6 @@ int main(int argc, char* argv[]){
     remaining.tv_nsec = atoi(argv[1]);
 
     //Creo coda di messaggi per parlare con Atomo
-    int msgid_explode = msgget(KEY_INHIB_EXPLODE,0777); //msgid tiene id per comunicare con inibitore
     int msgid_meltdown = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
 
     //struttura msgctl
@@ -154,9 +153,7 @@ int main(int argc, char* argv[]){
                     perror("releaseSem inibitore energy taked: ");
                     exit(1);
                 }
-            }
-
-            if(energia_attuale > Energy_Threshold / 8){
+            }else if(energia_attuale > Energy_Threshold / 8){
                 if(reserveSem(sem_sm, 5) < 0){
                     perror("reserveSem inibitore energy total: ");
                     exit(1);
@@ -175,9 +172,7 @@ int main(int argc, char* argv[]){
                     perror("releaseSem inibitore energy taked: ");
                     exit(1);
                 }
-            }
-
-            if(energia_attuale > Energy_Threshold / 12){
+            }else if(energia_attuale > Energy_Threshold / 12){
                 if(reserveSem(sem_sm, 5) < 0){
                     perror("reserveSem inibitore energy total: ");
                     exit(1);
@@ -352,14 +347,10 @@ int main(int argc, char* argv[]){
             mex.mex = 0;
             mex.mtype = 1;
 
-            long int count = gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD);
+            mex.mex = gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD);
+            printf("%d\n", mex.mex);
 
-            for(long int i = 0; i < count; i++){
-                if(msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0)){
-                    perror("msg send inibitore scrap: ");
-                }
-                //printf("\nmessaggio mandato\n");
-            }
+            msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
             
         }
 

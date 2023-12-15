@@ -146,6 +146,15 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
+    int sem_sm_atom;
+    sem_sm_atom = semget(KEY_SEM_SM_ATOM, 1, IPC_CREAT | 0777);
+    fprintf(ipcs_id, "%d\n", sem_sm_atom);
+    if(semctl(sem_sm_atom, 0, SETVAL, 0) < 0){
+        perror("semctl sm atom");
+        exit(1);
+    }
+    releaseSem(sem_sm_atom, 0);
+
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
     fprintf(ipcs_id, "%d\n", sem_att);
     if(semctl(sem_att, 0, SETVAL, 0) < 0){
@@ -165,15 +174,21 @@ int main(int argc, char* argv[]){
     fprintf(ipcs_id2, "%d\n", shmid);
     st = shmat(shmid, NULL, 0);
 
+    //sm only for atom
+    struct atoms *st_atom;
+    int shmid_atom = shmget(KEY_SHM_ATOM, sizeof(st_atom), IPC_CREAT | 0777);
+    fprintf(ipcs_id2, "%d\n", shmid_atom);
+    st_atom = shmat(shmid_atom, NULL, 0);
+
+    st_atom->n = 0;
+
     fclose(ipcs_id);
     fclose(ipcs_id2);
 
-    int msgid_explode = msgget(KEY_INHIB_EXPLODE,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
     int msgid_meltdown = msgget(KEY_INHIB_MELTDOWN,IPC_CREAT|0777); //msgid tiene id per comunicare con inibitore
 
     //file per gestione rimozione di risorse ipc
     FILE *ipcs_id_q = fopen("ipcs_id_q.txt", "a");
-    fprintf(ipcs_id_q, "%d\n", msgid_explode);
     fprintf(ipcs_id_q, "%d\n", msgid_meltdown);
     fclose(ipcs_id_q);
 

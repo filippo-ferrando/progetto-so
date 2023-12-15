@@ -114,3 +114,6 @@ typedef struct stats {
     int current_atoms;
 }stats;
 
+typedef struct atoms {
+    int n;
+}atoms;
