@@ -70,19 +70,36 @@ int main(int argc, char* argv[]){
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }
-
-        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
-        if(errno != ENOMSG){
-            if(reserveSem(sem_sm_atom, 0) < 0){
+        //printf("set - atom = %d\n", st_atom->n);
+        if(st_atom->n <= 0){
+            msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, 0);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
+                if(reserveSem(sem_sm_atom, 0) < 0){
                 perror("reserveSem sm atom atomo: ");
                 exit(1);
-            }
-            st_atom->n = messaggio.mex; 
-            if(releaseSem(sem_sm_atom, 0) < 0){
-                perror("releaseSem sm atom atomo: ");
-                exit(1);
+                }
+                st_atom->n = messaggio.mex; 
+                if(releaseSem(sem_sm_atom, 0) < 0){
+                    perror("releaseSem sm atom atomo: ");
+                    exit(1);
             }
         }
+
+        /*
+        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
+        if(errno != ENOMSG){
+            if(st_atom->n == 0){
+                if(reserveSem(sem_sm_atom, 0) < 0){
+                perror("reserveSem sm atom atomo: ");
+                exit(1);
+                }
+                st_atom->n = messaggio.mex; 
+                if(releaseSem(sem_sm_atom, 0) < 0){
+                    perror("releaseSem sm atom atomo: ");
+                    exit(1);
+                }
+            }
+        }
+        */
 
 
 

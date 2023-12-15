@@ -289,21 +289,21 @@ int main(int argc, char* argv[]){
     
             if(curr_process > max_c_process/2){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 40;
+                gravita_MTD = 100;
                 min_MTD = 600;
                 max_MTD = 700;
             }else if(curr_process > max_c_process/4){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 35;
+                gravita_MTD = 80;
                 min_MTD = 500;
                 max_MTD = 600;
             }else if(curr_process > max_c_process/5){
-                gravita_MTD = 20;
+                gravita_MTD = 60;
                 min_MTD = 400;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/6){
                 //printf("\nRischio MTD: 7\n");
-                gravita_MTD = 15;
+                gravita_MTD = 30;
                 min_MTD = 350;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/7){
@@ -348,7 +348,7 @@ int main(int argc, char* argv[]){
             mex.mtype = 1;
 
             mex.mex = gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD);
-            printf("%d\n", mex.mex);
+            //printf("%d\n", mex.mex);
 
             msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
             
