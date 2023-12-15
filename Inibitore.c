@@ -288,68 +288,93 @@ int main(int argc, char* argv[]){
             curr_process = st->current_atoms;
     
             if(curr_process > max_c_process/2){
+                gravita_MTD = 1000;
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 100;
-                min_MTD = 600;
-                max_MTD = 700;
+                //gravita_MTD = 100;
+                //min_MTD = 600;
+                //max_MTD = 700;
             }else if(curr_process > max_c_process/4){
+                gravita_MTD = 800;
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 80;
-                min_MTD = 500;
-                max_MTD = 600;
+                //gravita_MTD = 80;
+                //min_MTD = 500;
+                //max_MTD = 600;
             }else if(curr_process > max_c_process/5){
+                gravita_MTD = 600;
+                /*
                 gravita_MTD = 60;
                 min_MTD = 400;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/6){
+                gravita_MTD = 400;
                 //printf("\nRischio MTD: 7\n");
+                /*
                 gravita_MTD = 30;
                 min_MTD = 350;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/7){
+                gravita_MTD = 200;
                 //printf("\nRischio MTD: 6");
+                /*
                 gravita_MTD = 10;
                 min_MTD = 300;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/8){
+                gravita_MTD = 100;
                 //printf("\nRischio MTD: 4");
+                /*
                 gravita_MTD = 8;
                 min_MTD = 300;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/10){
+                gravita_MTD = 80;
                 //printf("\nRischio MTD: 0");
+                /*
                 gravita_MTD = 6;
                 min_MTD = 250;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/15){
+                gravita_MTD = 60;
                 //printf("\nRischio MTD: 0");
+                /*
                 gravita_MTD = 4;
                 min_MTD = 150;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/20){
+                gravita_MTD = 40;
                 //printf("\nRischio MTD: 0");
+                /*
                 gravita_MTD = 2;
                 min_MTD = 100;
                 max_MTD = 500;
+                */
             }else if(curr_process > max_c_process/30){
+                gravita_MTD = 20;
                 //printf("\nRischio MTD: 0");
+                /*
                 gravita_MTD = 2;
+
                 min_MTD = 100;
                 max_MTD = 500;
+                */
             }else{
                 gravita_MTD = 1;
-                min_MTD = 1;
-                max_MTD = 500;
+                //max_MTD = 500;
             }
             
 
 
             mex.mex = 0;
+ 
             mex.mtype = 1;
-
-            mex.mex = gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD);
-            //printf("%d\n", mex.mex);
-
+            mex.mex = gravita_MTD;
+            //printf("%d\n", mex.m/ex);
             msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
             
         }

@@ -77,6 +77,7 @@ int main(int argc, char* argv[]){
                 perror("reserveSem sm atom atomo: ");
                 exit(1);
                 }
+                printf("atomo %d ricevuto messaggio\n", messaggio.mex);
                 st_atom->n = messaggio.mex; 
                 if(releaseSem(sem_sm_atom, 0) < 0){
                     perror("releaseSem sm atom atomo: ");
