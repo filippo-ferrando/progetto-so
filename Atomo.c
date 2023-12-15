@@ -74,70 +74,20 @@ int main(int argc, char* argv[]){
         if(st_atom->n <= 0){
             msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
             if(errno != ENOMSG){
-                /*
                 if(reserveSem(sem_sm_atom, 0) < 0){
                     perror("reserveSem sm atom atomo: ");
                     exit(1);
                 }
-                */
                 //printf("atomo %d ricevuto messaggio\n", messaggio.mex);
                 st_atom->n = messaggio.mex; 
-                /*
+
                 if(releaseSem(sem_sm_atom, 0) < 0){
                     perror("releaseSem sm atom atomo: ");
                     exit(1);
                 }
-                */
+
             }
         }
-
-        if(st_atom->n > 0){
-                    //printf("atomo %d ricevuto messaggio\n", getpid());
-                    if(reserveSem(sem_sm, 9) < 0){
-                        perror("reserveSem sm scrap_ls atomo: ");
-                        exit(1);
-                    }
-                    if(reserveSem(sem_sm, 12) < 0){
-                        perror("reserveSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    if(reserveSem(sem_sm, 10) < 0){
-                        perror("reserveSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    /*
-                    if(reserveSem(sem_sm_atom, 0) < 0){
-                        perror("reserveSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    */
-                    //printf("atomo %d scrap\n", getpid());
-                    st_atom->n--;
-                    st->current_atoms--;
-                    st->scrap_inibitore++;
-                    st->scrap_ls++;
-
-                    if(releaseSem(sem_sm, 9) < 0){
-                        perror("releaseSem sm scrap_ls atomo: ");
-                        exit(1);
-                    }
-                    if(releaseSem(sem_sm, 12) < 0){
-                        perror("releaseSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    if(releaseSem(sem_sm, 10) < 0){
-                        perror("releaseSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    /*
-                    if(releaseSem(sem_sm_atom, 0) < 0){
-                        perror("releaseSem sm atomi alimentatore: ");
-                        exit(1);
-                    }
-                    */
-                    exit(0);                    
-                }
-
         /*
         msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
         if(errno != ENOMSG){
@@ -240,8 +190,8 @@ int main(int argc, char* argv[]){
                     exit(1);
                 }
                 //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
-                /*
-                if(st_atom->n > 0){
+
+                if(st_atom->n >= 0){
                     //printf("atomo %d ricevuto messaggio\n", getpid());
                     if(reserveSem(sem_sm, 9) < 0){
                         perror("reserveSem sm scrap_ls atomo: ");
@@ -283,7 +233,7 @@ int main(int argc, char* argv[]){
                     }
                     exit(0);                    
                 }
-                */
+
         }
         while(waitpid(-1, NULL, 0)>0);
         //nanosleep(&remaining, &request);
