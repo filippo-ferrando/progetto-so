@@ -30,7 +30,9 @@ void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
     int sem_inibitore_ready = semget(KEY_PROC_READY, 1, 0777);
+
     stato_inib = 1;
+
     //Creo Sigaction
     struct sigaction sa;
     bzero(&sa, sizeof(sa));
@@ -38,6 +40,7 @@ int main(int argc, char* argv[]){
     sigaction(SIGUSR1, &sa, NULL);
     sa.sa_handler = handle_SIGUSR2;
     sigaction(SIGUSR2,&sa, NULL);
+
     //Creo Shared Memory
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
@@ -51,6 +54,7 @@ int main(int argc, char* argv[]){
     int max_MTD = 0, max_EXP = 0;
 
     int energia_attuale = 0; //Aggiunto
+    int energia_ls = 0;
     int Energy_Threshold = atoi(argv[2]); // argv[2]
 
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
@@ -60,7 +64,13 @@ int main(int argc, char* argv[]){
     remaining.tv_nsec = atoi(argv[1]);
 
     //Creo coda di messaggi per parlare con Atomo
-    int msgid = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con inibitore
+    int msgid_explode = msgget(KEY_INHIB_EXPLODE,0777); //msgid tiene id per comunicare con inibitore
+    int msgid_meltdown = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
+
+    //struttura msgctl
+    struct msqid_ds buf;
+
+    //struct messaggio
     struct message_buf mex;
     mex.mex = 0;
 
@@ -102,6 +112,113 @@ int main(int argc, char* argv[]){
             }
             */
             energia_attuale = st->energy_created_total;
+            energia_ls = st->energy_created_ls;
+
+            if(energia_attuale * 2 > Energy_Threshold){
+                if(reserveSem(sem_sm, 5) < 0){
+                    perror("reserveSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(reserveSem(sem_sm, 11) < 0){
+                    perror("reserveSem inibitore energy taked: ");
+                    exit(1);
+                }
+                st->energy_absorbed_inibitore += st->energy_created_total/2;
+                st->energy_created_total -= st->energy_created_total/2;
+                if(releaseSem(sem_sm, 5) < 0){
+                    perror("releaseSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(releaseSem(sem_sm, 11) < 0){
+                    perror("releaseSem inibitore energy taked: ");
+                    exit(1);
+                }
+            }
+
+            if(energia_attuale > Energy_Threshold / 4){
+                if(reserveSem(sem_sm, 5) < 0){
+                    perror("reserveSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(reserveSem(sem_sm, 11) < 0){
+                    perror("reserveSem inibitore energy taked: ");
+                    exit(1);
+                }
+                st->energy_absorbed_inibitore += st->energy_created_total/4;
+                st->energy_created_total -= st->energy_created_total/4;
+                if(releaseSem(sem_sm, 5) < 0){
+                    perror("releaseSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(releaseSem(sem_sm, 11) < 0){
+                    perror("releaseSem inibitore energy taked: ");
+                    exit(1);
+                }
+            }
+
+            if(energia_attuale > Energy_Threshold / 8){
+                if(reserveSem(sem_sm, 5) < 0){
+                    perror("reserveSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(reserveSem(sem_sm, 11) < 0){
+                    perror("reserveSem inibitore energy taked: ");
+                    exit(1);
+                }
+                st->energy_absorbed_inibitore += st->energy_created_total/4;
+                st->energy_created_total -= st->energy_created_total/4;
+                if(releaseSem(sem_sm, 5) < 0){
+                    perror("releaseSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(releaseSem(sem_sm, 11) < 0){
+                    perror("releaseSem inibitore energy taked: ");
+                    exit(1);
+                }
+            }
+
+            if(energia_attuale > Energy_Threshold / 12){
+                if(reserveSem(sem_sm, 5) < 0){
+                    perror("reserveSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(reserveSem(sem_sm, 11) < 0){
+                    perror("reserveSem inibitore energy taked: ");
+                    exit(1);
+                }
+                st->energy_absorbed_inibitore += st->energy_created_total/8;
+                st->energy_created_total -= st->energy_created_total/8;
+                if(releaseSem(sem_sm, 5) < 0){
+                    perror("releaseSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(releaseSem(sem_sm, 11) < 0){
+                    perror("releaseSem inibitore energy taked: ");
+                    exit(1);
+                }
+            }
+
+            if(energia_ls > Energy_Threshold / 3){
+                if(reserveSem(sem_sm, 5) < 0){
+                    perror("reserveSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(reserveSem(sem_sm, 11) < 0){
+                    perror("reserveSem inibitore energy taked: ");
+                    exit(1);
+                }
+                st->energy_created_ls -= energia_attuale;
+                st->energy_absorbed_inibitore += energia_attuale;
+                if(releaseSem(sem_sm, 5) < 0){
+                    perror("releaseSem inibitore energy total: ");
+                    exit(1);
+                }
+                if(releaseSem(sem_sm, 11) < 0){
+                    perror("releaseSem inibitore energy taked: ");
+                    exit(1);
+                }
+
+            }
             /*
             if(releaseSem(sem_sm, 5) < 0){
                 perror("reserveSem inibitore energy total: ");
@@ -109,49 +226,54 @@ int main(int argc, char* argv[]){
             }
             */
             //printf("Energia attuale: %d\n", energia_attuale);
+            /*
             if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
-                //printf("\nRISCHIO MTD : 10\n");
+                //printf("\nRISCHIO MTD : 30\n");
                 gravita_EXP = 30;
-                min_EXP = 500;
-                max_EXP = 700;
+                min_EXP = 250;
+                max_EXP = 400;
             }else if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
-                //printf("\nRISCHIO EXP : 4\n");
+                //printf("\nRISCHIO EXP : 15\n");
                 gravita_EXP = 25;
-                min_EXP = 400;
-                max_EXP = 500;
+                min_EXP = 200;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/12) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 3\n");
+                //printf("\nRISCHIO EXP : 12\n");
                 gravita_EXP = 15;
                 min_EXP = 150;
                 max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 2\n");
+                //printf("\nRISCHIO EXP : 10\n");
                 gravita_EXP = 9;
-                min_EXP = 500;
-                max_EXP = 700;
+                min_EXP = 115;
+                max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 1\n");
+                //printf("\nRISCHIO EXP : 8\n");
                 gravita_EXP = 7;
                 min_EXP = 100;
                 max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
+                //printf("\nRISCHIO EXP : 6\n");
                 gravita_EXP = 6;
                 min_EXP = 100;
                 max_EXP = 300;
 		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
+                //printf("\nRISCHIO EXP : 4\n");
                 gravita_EXP = 4;
                 min_EXP = 100;
                 max_EXP = 300;
             }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
-                gravita_EXP = 2;
+                //printf("\nRISCHIO EXP : 2\n");
+                gravita_EXP = 3;
                 min_EXP = 50;
-                max_EXP = 200;
+                max_EXP = 300;
             }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
-                gravita_EXP = 1;
+                //printf("\nRISCHIO EXP : 1\n");
+                gravita_EXP = 2;
                 min_EXP = 25;
-                max_EXP = 200;
+                max_EXP = 300;
             }else{
-                gravita_EXP = 0;
+                gravita_EXP = 1;
                 min_EXP = 1;
                 max_EXP = 300;
             }
@@ -159,81 +281,85 @@ int main(int argc, char* argv[]){
             mex.mex = 0;
             mex.mtype = 3;
 
+            
             for(int i = 0; i < gravita_EXP * ((rand() % max_EXP - min_EXP + 1) + min_EXP); i++){
-                if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
+                if(msgsnd(msgid_explode, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore energia: ");
                     printf("errore");
                 }
             }
+            */
 
             curr_process = st->current_atoms;
     
             if(curr_process > max_c_process/2){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 67;
+                gravita_MTD = 40;
                 min_MTD = 600;
                 max_MTD = 700;
             }else if(curr_process > max_c_process/4){
                 //printf("\nRischio MTD: 10");
-                gravita_MTD = 53;
+                gravita_MTD = 35;
                 min_MTD = 500;
                 max_MTD = 600;
             }else if(curr_process > max_c_process/5){
-                gravita_MTD = 30;
+                gravita_MTD = 20;
                 min_MTD = 400;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/6){
                 //printf("\nRischio MTD: 7\n");
-                gravita_MTD = 18;
+                gravita_MTD = 15;
                 min_MTD = 350;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/7){
                 //printf("\nRischio MTD: 6");
-                gravita_MTD = 16;
+                gravita_MTD = 10;
                 min_MTD = 300;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/8){
                 //printf("\nRischio MTD: 4");
-                gravita_MTD = 14;
+                gravita_MTD = 8;
                 min_MTD = 300;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/10){
                 //printf("\nRischio MTD: 0");
-                gravita_MTD = 12;
+                gravita_MTD = 6;
                 min_MTD = 250;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/15){
                 //printf("\nRischio MTD: 0");
-                gravita_MTD = 10;
+                gravita_MTD = 4;
                 min_MTD = 150;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/20){
                 //printf("\nRischio MTD: 0");
-                gravita_MTD = 8;
+                gravita_MTD = 2;
                 min_MTD = 100;
                 max_MTD = 500;
             }else if(curr_process > max_c_process/30){
                 //printf("\nRischio MTD: 0");
-                gravita_MTD = 6;
+                gravita_MTD = 2;
                 min_MTD = 100;
                 max_MTD = 500;
             }else{
-                gravita_MTD = 0;
+                gravita_MTD = 1;
                 min_MTD = 1;
                 max_MTD = 500;
             }
+            
+
 
             mex.mex = 0;
             mex.mtype = 1;
 
-            for(int i = 0; i < gravita_MTD * ((rand() % max_MTD - min_MTD + 1) + min_MTD); i++){
-                if(msgsnd(msgid, &mex, sizeof(mex.mex), 0)){
+            long int count = gravita_MTD * ((rand() % (max_MTD - min_MTD) + 1) + min_MTD);
+
+            for(long int i = 0; i < count; i++){
+                if(msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0)){
                     perror("msg send inibitore scrap: ");
                 }
                 //printf("\nmessaggio mandato\n");
             }
-
-
             
         }
 
