@@ -288,26 +288,26 @@ int main(int argc, char* argv[]){
             curr_process = st->current_atoms;
     
             if(curr_process > max_c_process/2){
-                gravita_MTD = 1000;
+                gravita_MTD = 2000;
                 //printf("\nRischio MTD: 10");
                 //gravita_MTD = 100;
                 //min_MTD = 600;
                 //max_MTD = 700;
             }else if(curr_process > max_c_process/4){
-                gravita_MTD = 800;
+                gravita_MTD = 100;
                 //printf("\nRischio MTD: 10");
                 //gravita_MTD = 80;
                 //min_MTD = 500;
                 //max_MTD = 600;
             }else if(curr_process > max_c_process/5){
-                gravita_MTD = 600;
+                gravita_MTD = 800;
                 /*
                 gravita_MTD = 60;
                 min_MTD = 400;
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/6){
-                gravita_MTD = 400;
+                gravita_MTD = 600;
                 //printf("\nRischio MTD: 7\n");
                 /*
                 gravita_MTD = 30;
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/7){
-                gravita_MTD = 200;
+                gravita_MTD = 400;
                 //printf("\nRischio MTD: 6");
                 /*
                 gravita_MTD = 10;
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/8){
-                gravita_MTD = 100;
+                gravita_MTD = 200;
                 //printf("\nRischio MTD: 4");
                 /*
                 gravita_MTD = 8;
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/10){
-                gravita_MTD = 80;
+                gravita_MTD = 100;
                 //printf("\nRischio MTD: 0");
                 /*
                 gravita_MTD = 6;
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/15){
-                gravita_MTD = 60;
+                gravita_MTD = 1500;
                 //printf("\nRischio MTD: 0");
                 /*
                 gravita_MTD = 4;
@@ -347,7 +347,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/20){
-                gravita_MTD = 40;
+                gravita_MTD = 400;
                 //printf("\nRischio MTD: 0");
                 /*
                 gravita_MTD = 2;
@@ -355,7 +355,7 @@ int main(int argc, char* argv[]){
                 max_MTD = 500;
                 */
             }else if(curr_process > max_c_process/30){
-                gravita_MTD = 20;
+                gravita_MTD = 300;
                 //printf("\nRischio MTD: 0");
                 /*
                 gravita_MTD = 2;
