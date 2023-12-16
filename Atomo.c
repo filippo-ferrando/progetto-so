@@ -3,6 +3,12 @@
 
 int energy_released(int n1, int n2);
 
+struct message_buffer{
+    long m_type;
+    int mex;
+};
+
+
 int main(int argc, char* argv[]){
     int n_atomico = atoi(argv[1]);
     int bypass = atoi(argv[2]);
@@ -40,7 +46,7 @@ int main(int argc, char* argv[]){
     //attach to message queue
 
     int msgid = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
-    struct message_buf messaggio;
+    struct message_buffer messaggio;
     
     //struct per nanosleep -> 0,5s
     struct timespec remaining, request;
@@ -71,16 +77,18 @@ int main(int argc, char* argv[]){
             exit(1);
         }
 
-        if(st_atom->n <= 0){
+        if(st_atom->n <= 0){ //N.B: st_atom può avere anche valori negativi
             msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
             if(errno != ENOMSG){
-                if(reserveSem(sem_sm_atom, 0) < 0){
+            	if(reserveSem(sem_sm_atom, 0) < 0){
                     perror("reserveSem sm atom atomo: ");
                     exit(1);
                 }
-                //printf("atomo %d ricevuto messaggio\n", messaggio.mex);
-                st_atom->n = messaggio.mex; 
-
+                if(messaggio.mex != 0){ 
+                        //printf("Prima di leggere nuova quantita, il mio valore è %d\n",st_atom->n); 
+                	//printf("atomo %d ricevuto messaggio\n", messaggio.mex);
+                	st_atom->n += messaggio.mex; 
+		}
                 if(releaseSem(sem_sm_atom, 0) < 0){
                     perror("releaseSem sm atom atomo: ");
                     exit(1);
@@ -191,7 +199,7 @@ int main(int argc, char* argv[]){
                 }
                 //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
 
-                if(st_atom->n >= 0){
+                if(st_atom->n > 0){
                     //printf("atomo %d ricevuto messaggio\n", getpid());
                     if(reserveSem(sem_sm, 9) < 0){
                         perror("reserveSem sm scrap_ls atomo: ");
