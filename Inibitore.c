@@ -20,12 +20,6 @@ void handle_SIGUSR2(int signal){ //Se ricevo SIGUSR2, accendo l'inibitore
     stato_inib = 1;
 }
 
-/*
-* ATTACH SM PER:
-*   - ENERGIA ASSORBITA DA INIBITORE
-* METODO PER CREARE LOG DI INIBITORE
-*/
-
 
 int main(int argc, char* argv[]){
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
@@ -46,16 +40,16 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
-    int max_c_process = atoi(argv[3]);
+    int max_c_process = atoi(argv[3]); 
     int curr_process;
     int actual_energy = 0;
     int gravita_MTD = 0, gravita_EXP = 0;
-    int min_MTD = 0, min_EXP = 0;
-    int max_MTD = 0, max_EXP = 0;
+    int min_MTD = 0, min_EXP = 0; //cancella, inutle
+    int max_MTD = 0, max_EXP = 0; //cancella, inutle
 
-    int energia_attuale = 0; //Aggiunto
+    int energia_attuale = 0;
     int energia_ls = 0;
-    int Energy_Threshold = atoi(argv[2]); // argv[2]
+    int Energy_Threshold = atoi(argv[2]);
 
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
 
@@ -67,7 +61,7 @@ int main(int argc, char* argv[]){
     int msgid_meltdown = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
 
     //struttura msgctl
-    struct msqid_ds buf;
+    struct msqid_ds buf; //Cancella, inutile
 
     //struct messaggio
     struct message_buf mex;
@@ -85,36 +79,18 @@ int main(int argc, char* argv[]){
         exit(1);
     }
     //sleep(1);
-
-    /*
-    * INIBITORE ACCESO O SPENTO (varibile ambente passata da master o SIGUSR1/2)
-    * DEVE GESTIRE SIA MELTDOWN CHE EXPLODE
-    * SE INIBITORE ACCESO:
-    *   - CONTROLLA LA REAZIONE TRANSORMANDO RAND ATOMI IN SCORIE (?)
-    *   - CONTROLLA IL RILASCIO DI ENERGIA ASSORBENDONE UNA PARTE -> L'ENERGIA VIENE ASSORBITA DIRETTAMENTE DALLA SCISSIONE (?)
-    * SE INIBITORE SPENTO:
-    *   - NON FACCIO NIENTE
-    */
-
     
-        srand(getpid());
+    srand(getpid());
 
     while(1){
         if(stato_inib == 1){
-            //printf("ciclo\n");
-            //CODICE INIBITORE
-            //Faccio controlli sullo stato ogni mezzo secondo
-            //usleep(atoi(argv[1]));
-            /*
-            if(reserveSem(sem_sm, 5) < 0){
-                perror("reserveSem inibitore energy total: ");
-                exit(1);
-            }
-            */
+
+            //GESTIONE EXPLODE
+
             energia_attuale = st->energy_created_total;
             energia_ls = st->energy_created_ls;
 
-            if(energia_attuale * 2 > Energy_Threshold){
+            if(energia_attuale > Energy_Threshold / 2){
                 if(reserveSem(sem_sm, 5) < 0){
                     perror("reserveSem inibitore energy total: ");
                     exit(1);
@@ -215,104 +191,37 @@ int main(int argc, char* argv[]){
                 }
 
             }
-            /*
-            if(releaseSem(sem_sm, 5) < 0){
-                perror("reserveSem inibitore energy total: ");
-                exit(1);
-            }
-            */
-            //printf("Energia attuale: %d\n", energia_attuale);
-            /*
-            if(energia_attuale + (Energy_Threshold/30) > Energy_Threshold){
-                //printf("\nRISCHIO MTD : 30\n");
-                gravita_EXP = 30;
-                min_EXP = 250;
-                max_EXP = 400;
-            }else if(energia_attuale + (Energy_Threshold/15) > Energy_Threshold) {
-                //printf("\nRISCHIO EXP : 15\n");
-                gravita_EXP = 25;
-                min_EXP = 200;
-                max_EXP = 300;
-            }else if(energia_attuale + (Energy_Threshold/12) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 12\n");
-                gravita_EXP = 15;
-                min_EXP = 150;
-                max_EXP = 300;
-            }else if(energia_attuale + (Energy_Threshold/10) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 10\n");
-                gravita_EXP = 9;
-                min_EXP = 115;
-                max_EXP = 300;
-            }else if(energia_attuale + (Energy_Threshold/8) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 8\n");
-                gravita_EXP = 7;
-                min_EXP = 100;
-                max_EXP = 300;
-            }else if(energia_attuale + (Energy_Threshold/6) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 6\n");
-                gravita_EXP = 6;
-                min_EXP = 100;
-                max_EXP = 300;
-		    }else if(energia_attuale + (Energy_Threshold/4) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 4\n");
-                gravita_EXP = 4;
-                min_EXP = 100;
-                max_EXP = 300;
-            }else if(energia_attuale + (Energy_Threshold/2) > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 2\n");
-                gravita_EXP = 3;
-                min_EXP = 50;
-                max_EXP = 300;
-            }else if(energia_attuale + Energy_Threshold > Energy_Threshold){
-                //printf("\nRISCHIO EXP : 1\n");
-                gravita_EXP = 2;
-                min_EXP = 25;
-                max_EXP = 300;
-            }else{
-                gravita_EXP = 1;
-                min_EXP = 1;
-                max_EXP = 300;
-            }
-
-            mex.mex = 0;
-            mex.mtype = 3;
-
             
-            for(int i = 0; i < gravita_EXP * ((rand() % max_EXP - min_EXP + 1) + min_EXP); i++){
-                if(msgsnd(msgid_explode, &mex, sizeof(mex.mex), 0)){
-                    perror("msg send inibitore energia: ");
-                    printf("errore");
-                }
-            }
-            */
+            //GESTIONE MELTDOWN
+
 
             curr_process = st->current_atoms;
     
-            if(curr_process > max_c_process/2){
-		        gravita_MTD = (rand() % (3000-2000))+2000;
-            }else if(curr_process > max_c_process/4){
+            if(curr_process > max_c_process/2){ //Mangio fra 2000 e 3000 atomi
+                gravita_MTD = (rand() % (3000-2000))+2000;
+            }else if(curr_process > max_c_process/4){ //Mangio fra 1500 2300 atomi
                 gravita_MTD = (rand() % (2300-1500))+1500;
-            }else if(curr_process > max_c_process/5){
+            }else if(curr_process > max_c_process/5){//Mangio fra 1200 e 1800 atomi
                 gravita_MTD = (rand() % (1800-1200))+1200;
-            }else if(curr_process > max_c_process/6){
+            }else if(curr_process > max_c_process/6){ //Mangio fra 1100 e 1600 atomi
                 gravita_MTD = (rand() % (1600-1100))+1100;
-            }else if(curr_process > max_c_process/7){
+            }else if(curr_process > max_c_process/7){ //Mangio fra 1000 e 1400 atomi
                 gravita_MTD = (rand() % (1400-1000))+1000;
-            }else if(curr_process > max_c_process/8){
+            }else if(curr_process > max_c_process/8){ //Mangio fra 900 e 1200 atomi
                 gravita_MTD = (rand() % (1200-900))+900;
-            }else if(curr_process > max_c_process/10){
+            }else if(curr_process > max_c_process/10){ //Mangio fra 600 e 1000 atomi
                 gravita_MTD = (rand() % (1000-600))+600;
-            }else if(curr_process > max_c_process/15){
+            }else if(curr_process > max_c_process/15){ //Mangio fra 40 e 120 atomi
                 gravita_MTD = (rand() % (120-40))+40;
-            }else if(curr_process > max_c_process/20){
+            }else if(curr_process > max_c_process/20){ //Mangio fra 20 e 80 atomi
                 gravita_MTD = (rand() % (80-20))+20;
-            }else if(curr_process > max_c_process/30){
+            }else if(curr_process > max_c_process/30){ //Mangio fra 1 e 50 atomi
                 gravita_MTD = rand() % 50+1; 
             }else{
-                gravita_MTD = 0;
+                gravita_MTD = 0; //Non mangio atomi
             }
             
-            if(gravita_MTD!= 0){
+            if(gravita_MTD!= 0){ //Non mando messaggi all'Atomo, se devo inviare 0 elementi
                 mex.mex = gravita_MTD;
                 msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
             }
@@ -324,7 +233,3 @@ int main(int argc, char* argv[]){
         }
     }
 }
-//Inizialmente dorme per tot secondi
-//Inibitore controlla statistiche ogni mezzo secondo
-//Se inibitore è attivo, controlla se le statistiche siano rispettate
-//Se si raggiunge meltdown, ferma l'attivatore

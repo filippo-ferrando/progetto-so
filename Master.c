@@ -5,7 +5,9 @@ int alarm_rt = 0;
 pid_t pid_alimentatore,pid_attivatore;
 
 
-void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore, Alimentatore, Atomo e Attivatore
+// handler per SIGALRM
+void handle_alarm(int signal){
+    //Timeout SIGNAL
     int i;
 
     struct timespec remaining, request;
@@ -35,9 +37,11 @@ void handle_alarm(int signal){ //Quando gestisco questo alarm, uccido Inibitore,
     exit(0);
 }
 
+// handler per SIGUSR1
 void handle_usr1(int signal){
     //Explode | Blackout SIGNAL
     int i;
+
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 250000000;
@@ -50,7 +54,9 @@ void handle_usr1(int signal){
         }
         exit(0);
     }
+
     nanosleep(&remaining, &request);
+
     if(fork() == 0){
         char* argv[] = {"killer.sh",NULL};
         if(execve("./lib/killer.sh",argv,NULL) < 0){
@@ -58,13 +64,17 @@ void handle_usr1(int signal){
             exit(1);
         }
         exit(0);
-    }
+
+        }
     exit(0);
 
 }
 
-void handle_usr2(int signal){ //segnale di meltdown
+//handler per SIGUSR2
+void handle_usr2(int signal){ 
+    //Meltdown SIGNAL
     int i;
+
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
@@ -77,6 +87,7 @@ void handle_usr2(int signal){ //segnale di meltdown
     nanosleep(&remaining, &request);
 
     while(waitpid(-1, NULL, WNOHANG)>0);
+
     char* proc_names[] = {"Inibitore.out","Alimentatore.out","Atomo.out","Attivatore.out", NULL};
     if(fork() == 0){
         if(execve("/usr/bin/killall",proc_names,NULL) < 0){
@@ -100,6 +111,7 @@ void handle_usr2(int signal){ //segnale di meltdown
 
 
 int main(int argc, char* argv[]){
+    //ENV VARIABLES
     char* ENERGY_DEMAND = env_get_ENERGY_DEMAND();
     char* N_ATOMI_INIT = env_get_N_ATOMI_INIT();
     char* N_ATOM_MAX = env_get_N_ATOM_MAX();
@@ -113,17 +125,19 @@ int main(int argc, char* argv[]){
     char* SPLIT_ATOMS = env_get_SPLIT_ATOMS();
     char* MAX_PROCESS = env_get_MAX_PROCESS();
 
-    int i = 0;
-
+    //inibitore da subito?
     char inibit_start;
 
+    //struct per nanosleep
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = 500000000;
 
+    //file per gestione rimozione di risorse ipc
     FILE *ipcs_id = fopen("./ipcs_id_sem.txt","a");
     FILE *ipcs_id2 = fopen("./ipcs_id_mem.txt","a");
 
+    //struct per shared memory
     struct stats *st;
 
     printf("Vuoi usare inibitore da subito?: (y/n)\n");
@@ -146,6 +160,7 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
+    //semaforo per sm atomi
     int sem_sm_atom;
     sem_sm_atom = semget(KEY_SEM_SM_ATOM, 1, IPC_CREAT | 0777);
     fprintf(ipcs_id, "%d\n", sem_sm_atom);
@@ -155,6 +170,7 @@ int main(int argc, char* argv[]){
     }
     releaseSem(sem_sm_atom, 0);
 
+    //semaforo per attivatore
     int sem_att = semget(KEY_ATT, 1, IPC_CREAT|0777);
     fprintf(ipcs_id, "%d\n", sem_att);
     if(semctl(sem_att, 0, SETVAL, 0) < 0){
@@ -179,9 +195,9 @@ int main(int argc, char* argv[]){
     int shmid_atom = shmget(KEY_SHM_ATOM, sizeof(st_atom), IPC_CREAT | 0777);
     fprintf(ipcs_id2, "%d\n", shmid_atom);
     st_atom = shmat(shmid_atom, NULL, 0);
+    st_atom->n = 0; //Indica quanti atomi l'inibitore deve consumare
 
-    st_atom->n = 0;
-
+    //file per gestione rimozione di risorse ipc
     fclose(ipcs_id);
     fclose(ipcs_id2);
 
@@ -192,36 +208,10 @@ int main(int argc, char* argv[]){
     fprintf(ipcs_id_q, "%d\n", msgid_meltdown);
     fclose(ipcs_id_q);
 
-    st->activations_ls = 0;                 //sem 0
-    st->activations_total = 0;              //sem 1
-    st->split_ls = 0;                       //sem 2
-    st->split_total = 0;                    //sem 3
-    st->energy_created_ls = 0;              //sem 4
-    st->energy_created_total = 0;           //sem 5
-    st->energy_consumed_ls = 0;             //sem 6
-    st->energy_consumed_total = 0;          //sem 7
-    st->scrap = 0;                          //sem 8
-    st->scrap_ls = 0;                       //sem 9
-    st->scrap_inibitore = 0;                //sem 10
-    st->energy_absorbed_inibitore = 0;      //sem 11
-    st->current_atoms = atoi(N_ATOMI_INIT); //sem 12
-
+    st->activations_ls = 0;                 
     for(int i = 0; i < 13; i++){
         releaseSem(sem_sm_ready, i);
     }
-
-    /*
-    releaseSem(sem_sm_ready, 0);
-    releaseSem(sem_sm_ready, 1);
-    releaseSem(sem_sm_ready, 2);
-    releaseSem(sem_sm_ready, 3);
-    releaseSem(sem_sm_ready, 4);
-    releaseSem(sem_sm_ready, 5);
-    releaseSem(sem_sm_ready, 6);
-    releaseSem(sem_sm_ready, 7);
-    releaseSem(sem_sm_ready, 8);
-    releaseSem(sem_sm_ready, 9);
-    */
 
     //Creazione Handler
     struct sigaction sa;
@@ -240,7 +230,7 @@ int main(int argc, char* argv[]){
     char* pid = malloc(5);
     sprintf(pid,"%d",getpid());
 
-     //creazione processo attivatore; Argomenti: Nessuno
+    //creazione processo attivatore; Argomenti: Nessuno
     printf("Creo attivatore\n");
     char* argv_attivatore[] = {"Attivatore",ATT_STEP,SPLIT_ATOMS,NULL};
     switch(fork()){
@@ -256,6 +246,7 @@ int main(int argc, char* argv[]){
         default:
             break;
     }
+    free(pid);
 
     //creazione processo alimentatore; Argomenti: STEP
     printf("Creo alimentatore\n");
@@ -276,6 +267,7 @@ int main(int argc, char* argv[]){
         default:
             break;
     }
+    free(buf);
 
     //creazione processo inibitore; Argomenti: INIBIT_ATT
     if(inibit_start == 'y'){
@@ -302,7 +294,6 @@ int main(int argc, char* argv[]){
     for(int i=0; i<=atoi(N_ATOMI_INIT); i++){
         srand(getpid());
         n_atom_rand = rand() % atoi(N_ATOM_MAX) + 1;
-        //printf("atomo %d n atomico %d\n", i, n_atom_rand);
         sprintf(rand_n, "%d", n_atom_rand);
         
         strcpy(argv_atomo[1],rand_n);
@@ -314,16 +305,12 @@ int main(int argc, char* argv[]){
                     break;
             }
             break;
-        }
-        
-        
+        }   
     }
+    free(rand_n);
 
     while(1){ 
         if(inibit_start == 'y'){
-            //printf("%d\n", atoi(N_ATOMI_INIT)+3);
-            //printf("%d\n", semctl(sem_proc_ready, 0, GETVAL));
-            //sleep(1);
             if(semctl(sem_proc_ready, 0, GETVAL) == atoi(N_ATOMI_INIT)+3){
                 break;
             }
@@ -340,31 +327,17 @@ int main(int argc, char* argv[]){
     if(semctl(sem_master_ready, 0, SETVAL, atoi(N_ATOMI_INIT)+3) < 0){
         perror("semctl");
         exit(1);
-    }
-
-    //nanosleep(&remaining, &request); //dò il tempo ad atomo di scindere e creare energia -> altrimenti master entra in blackout subito
-    
-
+    }    
+    //Faccio partire il timer della simulazione DOPO che tutti i processi sono sincronizzati.
     alarm(atoi(SIM_DURATION));
     while(1){
+        //Ogni secondo, il Master fa le stampe dei vari valori.
         sleep(1);
+        
         //semfori sm
         for(int i = 0; i < 13; i++){
             reserveSem(sem_sm_ready, i);
         }
-
-        /*
-        reserveSem(sem_sm_ready, 0);
-        reserveSem(sem_sm_ready, 1);
-        reserveSem(sem_sm_ready, 2);
-        reserveSem(sem_sm_ready, 3);
-        reserveSem(sem_sm_ready, 4);
-        reserveSem(sem_sm_ready, 5);
-        reserveSem(sem_sm_ready, 6);
-        reserveSem(sem_sm_ready, 7);
-        reserveSem(sem_sm_ready, 8);
-        reserveSem(sem_sm_ready, 9);
-        */
 
         printf("--------------------------------------------------\n");
         printf("attivazioni totali: %d\n", st->activations_total);

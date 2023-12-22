@@ -13,15 +13,12 @@ int main(int argc, char* argv[]){
 
     //get semaforo sync-start
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
-    //printf("sem_start: %d\n", sem_start);
 
     //get semaforo sm
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
-    //printf("sem_sm: %d\n", sem_sm);
     
     //get semaforo attivatore
     int sem_att = semget(KEY_ATT, 1, 0777);
-    //printf("sem_att: %d\n", sem_att);
 
     int sem_atom_start_ready = semget(KEY_PROC_READY, 1, 0777);
 
@@ -42,11 +39,6 @@ int main(int argc, char* argv[]){
     int msgid = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
     struct message_buf messaggio;
     
-    //struct per nanosleep -> 0,5s
-    struct timespec remaining, request;
-    remaining.tv_sec = 0;
-    remaining.tv_nsec = 300000000;  //0,5s da definire metodo di decisione tempo di attivazione
-    
     //se atomo viene creato da master deve aspettare il semaforo di start -> alimentatore setta bypass != 0 -> atomo bypassa semaforo
     if(bypass == 0){
         if(releaseSem(sem_atom_start_ready, 0) < 0){
@@ -61,10 +53,6 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-
-        //se ci sono processi figli zombie, li elimino, altrimenti passo oltre -> WOHNANG settato
-        //while(waitpid(-1, NULL, WNOHANG)>0);
-
         if(reserveSem(sem_att, 0) < 0){    
             printf("sem_att: %d\n", sem_att);        
             perror("reserveSem attivatore atomo: ");
@@ -88,25 +76,7 @@ int main(int argc, char* argv[]){
 
             }
         }
-        /*
-        msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
-        if(errno != ENOMSG){
-            if(st_atom->n == 0){
-                if(reserveSem(sem_sm_atom, 0) < 0){
-                perror("reserveSem sm atom atomo: ");
-                exit(1);
-                }
-                st_atom->n = messaggio.mex; 
-                if(releaseSem(sem_sm_atom, 0) < 0){
-                    perror("releaseSem sm atom atomo: ");
-                    exit(1);
-                }
-            }
-        }
-        */
-
-
-
+        
         //calcolo numero atomico
         srand(getpid());
         rand_soglia = rand() % n_atomico + 1;
@@ -127,7 +97,7 @@ int main(int argc, char* argv[]){
             }
             st->scrap_ls++;
             st->current_atoms--;
-            //printf("atomo %d scrap\n", getpid());
+
             if(releaseSem(sem_sm, 9) < 0){
                 perror("releaseSem sm scrap atomo: ");
                 exit(1);
@@ -140,17 +110,12 @@ int main(int argc, char* argv[]){
         }
         
         //forko
-        /*
-        *IF LAST MSG_TYPE == 3 -> n_atomico (figlio) = 1 -> scrap++
-        */
         switch(fork()){
             case -1:
-                //perror("fork atomo: ");
                 //segnale di meltdown
                 kill(pid_master, SIGUSR2);
                 exit(1);
             case 0:
-                //printf("atomo figlio %d creato\n", getpid());
                 n_padre = n_atomico;
                 n_atomico = rand_soglia;
 
@@ -192,7 +157,6 @@ int main(int argc, char* argv[]){
                 //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
 
                 if(st_atom->n >= 0){
-                    //printf("atomo %d ricevuto messaggio\n", getpid());
                     if(reserveSem(sem_sm, 9) < 0){
                         perror("reserveSem sm scrap_ls atomo: ");
                         exit(1);
@@ -209,7 +173,6 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm atomi alimentatore: ");
                         exit(1);
                     }
-                    //printf("atomo %d scrap\n", getpid());
                     st_atom->n--;
                     st->current_atoms--;
                     st->scrap_inibitore++;
@@ -236,7 +199,6 @@ int main(int argc, char* argv[]){
 
         }
         while(waitpid(-1, NULL, 0)>0);
-        //nanosleep(&remaining, &request);
     }
     exit(0);
 }

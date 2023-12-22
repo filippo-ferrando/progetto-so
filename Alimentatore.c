@@ -26,13 +26,11 @@ int main(int argc, char* argv[]){
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = step;
-    //printf("\nstep: %d\n", step);
     
-    struct sigaction sa; //Aggiunta ora
-    bzero(&sa, sizeof(sa)); //Aggiunta ora
-	sa.sa_handler = handle_SIGUSR1; //Aggiunta ora
-    sigaction(SIGUSR1, &sa, NULL); //Aggiunta ora
-
+    struct sigaction sa; 
+    bzero(&sa, sizeof(sa));
+	sa.sa_handler = handle_SIGUSR1;
+    sigaction(SIGUSR1, &sa, NULL);
 
 
     struct stats *st;
@@ -58,7 +56,6 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-        //printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
 
         //sleep per step
         if(nanosleep(&remaining, &request) < 0){
@@ -100,7 +97,7 @@ int main(int argc, char* argv[]){
                         perror("execve alimentatore: ");
                         exit(1);
                     }
-                    exit(0); // -> da vedere
+                    exit(0);
             }
         }
         
