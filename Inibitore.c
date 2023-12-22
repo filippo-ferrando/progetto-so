@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
 
             curr_process = st->current_atoms;
             //In base alla quantita di atomi attivi, faccio consumare una quantita sempre più alta di atomi all'inibitore
-            if(curr_process > max_c_process/6){ //Mangio fra 2000 e 3000 atomi
+            if(curr_process > max_c_process/2){ //Mangio fra 2000 e 3000 atomi
                 gravita_MTD = (rand() % (3000-2000))+2000;
             }else if(curr_process > max_c_process/4){ //Mangio fra 1500 e 2300 atomi
                 gravita_MTD = (rand() % (2300-1500))+1500;

@@ -5,6 +5,7 @@
 echo Setting necessary environment variables...
 
 processsLimit=$(ulimit -u)
+processsLimit=$((processsLimit/4))
 
 export ENERGY_DEMAND=500
 echo Setting ENERGY_DEMAND to $ENERGY_DEMAND
