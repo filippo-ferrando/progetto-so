@@ -72,7 +72,8 @@ int main(int argc, char* argv[]){
     //struct messaggio
     struct message_buf mex;
     mex.mex = 0;
-
+    mex.mtype = 1;
+    
     if(releaseSem(sem_inibitore_ready, 0) < 0){
         perror("releaseSem inibitore ready: ");
         exit(1);
@@ -288,95 +289,33 @@ int main(int argc, char* argv[]){
             curr_process = st->current_atoms;
     
             if(curr_process > max_c_process/2){
-                gravita_MTD = 2000;
-                //printf("\nRischio MTD: 10");
-                //gravita_MTD = 100;
-                //min_MTD = 600;
-                //max_MTD = 700;
+		        gravita_MTD = (rand() % (3000-2000))+2000;
             }else if(curr_process > max_c_process/4){
-                gravita_MTD = 100;
-                //printf("\nRischio MTD: 10");
-                //gravita_MTD = 80;
-                //min_MTD = 500;
-                //max_MTD = 600;
+                gravita_MTD = (rand() % (2300-1500))+1500;
             }else if(curr_process > max_c_process/5){
-                gravita_MTD = 800;
-                /*
-                gravita_MTD = 60;
-                min_MTD = 400;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (1800-1200))+1200;
             }else if(curr_process > max_c_process/6){
-                gravita_MTD = 600;
-                //printf("\nRischio MTD: 7\n");
-                /*
-                gravita_MTD = 30;
-                min_MTD = 350;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (1600-1100))+1100;
             }else if(curr_process > max_c_process/7){
-                gravita_MTD = 400;
-                //printf("\nRischio MTD: 6");
-                /*
-                gravita_MTD = 10;
-                min_MTD = 300;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (1400-1000))+1000;
             }else if(curr_process > max_c_process/8){
-                gravita_MTD = 200;
-                //printf("\nRischio MTD: 4");
-                /*
-                gravita_MTD = 8;
-                min_MTD = 300;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (1200-900))+900;
             }else if(curr_process > max_c_process/10){
-                gravita_MTD = 100;
-                //printf("\nRischio MTD: 0");
-                /*
-                gravita_MTD = 6;
-                min_MTD = 250;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (1000-600))+600;
             }else if(curr_process > max_c_process/15){
-                gravita_MTD = 1500;
-                //printf("\nRischio MTD: 0");
-                /*
-                gravita_MTD = 4;
-                min_MTD = 150;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (120-40))+40;
             }else if(curr_process > max_c_process/20){
-                gravita_MTD = 400;
-                //printf("\nRischio MTD: 0");
-                /*
-                gravita_MTD = 2;
-                min_MTD = 100;
-                max_MTD = 500;
-                */
+                gravita_MTD = (rand() % (80-20))+20;
             }else if(curr_process > max_c_process/30){
-                gravita_MTD = 300;
-                //printf("\nRischio MTD: 0");
-                /*
-                gravita_MTD = 2;
-
-                min_MTD = 100;
-                max_MTD = 500;
-                */
+                gravita_MTD = rand() % 50+1; 
             }else{
-                gravita_MTD = 1;
-                //max_MTD = 500;
+                gravita_MTD = 0;
             }
             
-
-
-            mex.mex = 0;
- 
-            mex.mtype = 1;
-            mex.mex = gravita_MTD;
-            //printf("%d\n", mex.m/ex);
-            msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
-            
+            if(gravita_MTD!= 0){
+                mex.mex = gravita_MTD;
+                msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
+            }
         }
 
         if(nanosleep(&remaining, &request) < 0){
