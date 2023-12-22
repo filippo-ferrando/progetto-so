@@ -18,6 +18,7 @@ int main(int argc, char* argv[]){
 
     //get semaforo sm
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
+
     
     //get semaforo attivatore
     int sem_att = semget(KEY_ATT, 1, 0777);
@@ -63,21 +64,21 @@ int main(int argc, char* argv[]){
             perror("reserveSem attivatore atomo: ");
             exit(1);
         }
-
+        printf("statom->n: %d\n", st_atom->n);
         if(st_atom->n <= 0){ //N.B: st_atom può avere anche valori negativi
             msgrcv(msgid, &messaggio, sizeof(messaggio.mex), 1, IPC_NOWAIT);    //se il messaggio è di tipo 1 -> inibitore ha mandato messaggio -> atomo deve morire
             if(errno != ENOMSG){
-                if(messaggio.mex != 0){ 
                     if(reserveSem(sem_sm_atom, 0) < 0){
                         perror("reserveSem sm atom atomo: ");
                         exit(1);
                     }
-                    st_atom->n = messaggio.mex;                    
+                    if(messaggio.mex != 0){ 
+                        st_atom->n = messaggio.mex; 
+                    }                   
                     if(releaseSem(sem_sm_atom, 0) < 0){
                         perror("releaseSem sm atom atomo: ");
                         exit(1);
                     }
-                }
             }
         }
 
@@ -203,7 +204,6 @@ int main(int argc, char* argv[]){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }
-                    
                     exit(0);                    
                 }
         }
