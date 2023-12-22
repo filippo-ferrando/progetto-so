@@ -161,24 +161,20 @@ int main(int argc, char* argv[]){
 
             curr_process = st->current_atoms;
             //In base alla quantita di atomi attivi, faccio consumare una quantita sempre più alta di atomi all'inibitore
-            if(curr_process > max_c_process/2){ //Mangio fra 2000 e 3000 atomi
+            if(curr_process > max_c_process/4){ //Mangio fra 2000 e 3000 atomi
                 gravita_MTD = (rand() % (3000-2000))+2000;
-            }else if(curr_process > max_c_process/4){ //Mangio fra 1500 e 2300 atomi
+            }else if(curr_process > max_c_process/5){ //Mangio fra 1500 e 2300 atomi
                 gravita_MTD = (rand() % (2300-1500))+1500;
-            }else if(curr_process > max_c_process/5){//Mangio fra i 1200 e i 1800 atomi
+            }else if(curr_process > max_c_process/6){//Mangio fra i 1200 e i 1800 atomi
                 gravita_MTD = (rand() % (1800-1200))+1200;
-            }else if(curr_process > max_c_process/6){ // Mangio fra 1100 e 1600 atomi
+            }else if(curr_process > max_c_process/8){ // Mangio fra 1100 e 1600 atomi
                 gravita_MTD = (rand() % (1600-1100))+1100;
-            }else if(curr_process > max_c_process/7){ //Mangio fra 1000 e 1400 atomi
+            }else if(curr_process > max_c_process/10){ //Mangio fra 1000 e 1400 atomi
                 gravita_MTD = (rand() % (1400-1000))+1000;
-            }else if(curr_process > max_c_process/8){// Mangio fra 900 e 1200 atomi
-                gravita_MTD = (rand() % (1200-900))+900;
-            }else if(curr_process > max_c_process/10){ //Mangio fra i 600 e i 1000 atomi
+            }else if(curr_process > max_c_process/15){ //Mangio fra i 600 e i 1000 atomi
                 gravita_MTD = (rand() % (1000-600))+600;
-            }else if(curr_process > max_c_process/15){ //Mangio fra 40 e 120 atomi
+            }else if(curr_process > max_c_process/20){ //Mangio fra 40 e 120 atomi
                 gravita_MTD = (rand() % (120-40))+40;
-            }else if(curr_process > max_c_process/20){ //Mangio fra i 20 e gli 80 atomi
-                gravita_MTD = (rand() % (80-20))+20;
             }else if(curr_process > max_c_process/30){ //Mangio fra 1 e 50 atomi
                 gravita_MTD = rand() % 50+1;
             }else{ //Non mangio atomi

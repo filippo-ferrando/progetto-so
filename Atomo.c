@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm atom atomo: ");
                         exit(1);
                     }
-                    st_atom->n += messaggio.mex;                    
+                    st_atom->n = messaggio.mex;                    
                     if(releaseSem(sem_sm_atom, 0) < 0){
                         perror("releaseSem sm atom atomo: ");
                         exit(1);
@@ -174,10 +174,12 @@ int main(int argc, char* argv[]){
                         perror("reserveSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    
                     if(reserveSem(sem_sm_atom, 0) < 0){
                         perror("reserveSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    
 
                     st_atom->n--;
                     st->current_atoms--;
@@ -196,13 +198,14 @@ int main(int argc, char* argv[]){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    
                     if(releaseSem(sem_sm_atom, 0) < 0){
                         perror("releaseSem sm atomi alimentatore: ");
                         exit(1);
                     }
+                    
                     exit(0);                    
                 }
-
         }
         //aspetto eventuali processi figli zombie
         while(waitpid(-1, NULL, 0)>0);
