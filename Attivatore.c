@@ -6,10 +6,16 @@ void handle_SIGUSR1(int signal){
 }
 
 int main(int argc, char* argv[]){
+    //semforo sincronizzazione con master
     int sem_start = semget(KEY_SEM_ACT, 1, 0777);
+
+    //semaforo sinconizzazione r/w su sm
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
+
+    //semaforo "segnalatore" attivatore pronto
     int sem_attivatore_ready = semget(KEY_PROC_READY, 1, 0777);
 
+    //semaforo attivatore
     int sem_att = semget(KEY_ATT, 1, 0777);
 
     //file per gestione rimozione di risorse ipc
@@ -25,16 +31,18 @@ int main(int argc, char* argv[]){
     //numero di attivazioni che l'attivatore deve fare
     int n_attivazioni = atoi(argv[2]);    
 
-    struct sigaction sa; //Aggiunta ora
-    bzero(&sa, sizeof(sa)); //Aggiunta ora
-	sa.sa_handler = handle_SIGUSR1; //Aggiunta ora
-    sigaction(SIGUSR1, &sa, NULL); //Aggiunta ora
+    //handler per SIGUSR1
+    struct sigaction sa;
+    bzero(&sa, sizeof(sa));
+	sa.sa_handler = handle_SIGUSR1;
+    sigaction(SIGUSR1, &sa, NULL);
 
     //attach to shared memory
     struct stats *st;
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
     
+    //attivatore pronto
     if(releaseSem(sem_attivatore_ready, 0) < 0){
         perror("releaseSem attivatore ready: ");
         exit(1);
@@ -47,7 +55,6 @@ int main(int argc, char* argv[]){
         exit(1);
     
     }
-    //printf("SONO ATTIVATORE | HO PID %d\n", getpid());
 
     while(1){
         //riservo semaforo di sm per scrivere n attivazione
@@ -55,13 +62,15 @@ int main(int argc, char* argv[]){
             perror("reserveSem sm attivazioni attivatore: ");
             exit(1);
         }
-        //printf("attivatore in sezione critica sm\n");
+
         st->activations_ls+=n_attivazioni;
+        
         if(releaseSem(sem_sm, 0) < 0){
             perror("releaseSem sm attivazioni attivatore: ");
             exit(1);
         }
-        //printf("attivatore rilasica sem att\n");
+
+
         if(semctl(sem_att, 0, SETVAL, n_attivazioni) < 0){
             perror("semctl attivatore: ");
             exit(1);

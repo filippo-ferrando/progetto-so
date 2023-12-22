@@ -26,12 +26,11 @@ int main(int argc, char* argv[]){
     struct timespec remaining, request;
     remaining.tv_sec = 0;
     remaining.tv_nsec = step;
-    //printf("\nstep: %d\n", step);
     
-    struct sigaction sa; //Aggiunta ora
-    bzero(&sa, sizeof(sa)); //Aggiunta ora
-	sa.sa_handler = handle_SIGUSR1; //Aggiunta ora
-    sigaction(SIGUSR1, &sa, NULL); //Aggiunta ora
+    struct sigaction sa; //Creo la SIGACTION per gestire il SIGUSR1 dal Master
+    bzero(&sa, sizeof(sa)); 
+	sa.sa_handler = handle_SIGUSR1; 
+    sigaction(SIGUSR1, &sa, NULL); 
 
 
 
@@ -39,11 +38,11 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
-    //variabile per ciclo for
     int i = 0;
 
     //buffer per passare numero atomico ad Atomo.out
     char* buf = malloc(1);
+
     //argv per execve Atomo.out
     char* argv_atomo[] = {"Atomo.out", buf, "7",min_n_atomico,pid_master,NULL};
 
@@ -58,8 +57,6 @@ int main(int argc, char* argv[]){
     }
 
     while(1){
-        //printf("\nALIMENTATORE %d | creo %d atomi\n", getpid(), n_nuovi_atomi);
-
         //sleep per step
         if(nanosleep(&remaining, &request) < 0){
             perror("nanosleep alimentatore: ");
@@ -100,7 +97,7 @@ int main(int argc, char* argv[]){
                         perror("execve alimentatore: ");
                         exit(1);
                     }
-                    exit(0); // -> da vedere
+                    exit(0);
             }
         }
         

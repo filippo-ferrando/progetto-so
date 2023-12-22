@@ -56,28 +56,25 @@ int main(int argc, char* argv[]){
     int shmid = shmget(KEY_SHM, sizeof(st), 0777);
     st = shmat(shmid, NULL, 0);
 
-    int max_c_process = atoi(argv[3]);
-    int curr_process;
-    int actual_energy = 0;
-    int gravita_MTD = 0, gravita_EXP = 0;
-    int min_MTD = 0, min_EXP = 0;
-    int max_MTD = 0, max_EXP = 0;
+    int max_c_process = atoi(argv[3]); //Contiene quanti processi posso avere attivi nello stesso momento
+    int curr_process; //Contiene quanti processi sono attualemente attivi nel sistema
 
-    int energia_attuale = 0; //Aggiunto
-    int energia_ls = 0;
-    int Energy_Threshold = atoi(argv[2]); // argv[2]
+    int gravita_MTD = 0, gravita_EXP = 0; //I valori gravità servono per effettuare calcoli per gestire EXPLODE E MELTDOWN
+
+    int energia_attuale = 0; //Contiene quanta energia c'è attualmente nel sistema, serve per gestire EXPLODE
+    int energia_ls = 0; //Contiene quanta energia è stata generata l'ultimo secondo, serve per gestire EXPLODE
+    int Energy_Threshold = atoi(argv[2]); //Contiene la quantita massima che può esserci nel sistema. Serve per gestire EXPLODE
 
     int sem_sm = semget(KEY_SEM_SM, 13, 0777);
 
-    struct timespec remaining, request;
+    struct timespec remaining, request; 
     remaining.tv_sec = 0;
-    remaining.tv_nsec = atoi(argv[1]);
+    remaining.tv_nsec = atoi(argv[1]); //Salvo il valore di INIBIT_CHECK al suo interno
 
     //Creo coda di messaggi per parlare con Atomo
-    int msgid_meltdown = msgget(KEY_INHIB_MELTDOWN,0777); //msgid tiene id per comunicare con inibitore
+    int msgid_meltdown = msgget(KEY_INHIB,0777); //msgid tiene id per comunicare con Atomo
 
-    //struttura msgctl
-    struct msqid_ds buf; //Nicola: Questo credo sia inutile perché non lo vedo usato da nessuna parte qui.
+
     //struct messaggio
     struct message_buffer mex;
     mex.mex = 0;
@@ -93,106 +90,41 @@ int main(int argc, char* argv[]){
         perror("reserveSem start inibitore: ");
         exit(1);
     }
-    //sleep(1);
-
-    /*
-    * INIBITORE ACCESO O SPENTO (varibile ambente passata da master o SIGUSR1/2)
-    * DEVE GESTIRE SIA MELTDOWN CHE EXPLODE
-    * SE INIBITORE ACCESO:
-    *   - CONTROLLA LA REAZIONE TRANSORMANDO RAND ATOMI IN SCORIE (?)
-    *   - CONTROLLA IL RILASCIO DI ENERGIA ASSORBENDONE UNA PARTE -> L'ENERGIA VIENE ASSORBITA DIRETTAMENTE DALLA SCISSIONE (?)
-    * SE INIBITORE SPENTO:
-    *   - NON FACCIO NIENTE
-    */
 
     
-        srand(getpid());
+    srand(getpid());
 
     while(1){
         if(stato_inib == 1){
-            //printf("\nciclo\n");
-            //CODICE INIBITORE
-            //Faccio controlli sullo stato ogni mezzo secondo
-            //usleep(atoi(argv[1]));
-            /*
-            if(reserveSem(sem_sm, 5) < 0){
-                perror("reserveSem inibitore energy total: ");
-                exit(1);
-            }
-            */
+            
+            //GESTIONE EXPLODE
+
             energia_attuale = st->energy_created_total;
             energia_ls = st->energy_created_ls;
 
-            if(energia_attuale * 2 > Energy_Threshold){
-                if(reserveSem(sem_sm, 5) < 0){
-                    perror("reserveSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(reserveSem(sem_sm, 11) < 0){
-                    perror("reserveSem inibitore energy taked: ");
-                    exit(1);
-                }
-                st->energy_absorbed_inibitore += st->energy_created_total/2;
-                st->energy_created_total -= st->energy_created_total/2;
-                if(releaseSem(sem_sm, 5) < 0){
-                    perror("releaseSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(releaseSem(sem_sm, 11) < 0){
-                    perror("releaseSem inibitore energy taked: ");
-                    exit(1);
-                }
-            }
-
-            if(energia_attuale > Energy_Threshold / 4){
-                if(reserveSem(sem_sm, 5) < 0){
-                    perror("reserveSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(reserveSem(sem_sm, 11) < 0){
-                    perror("reserveSem inibitore energy taked: ");
-                    exit(1);
-                }
-                st->energy_absorbed_inibitore += st->energy_created_total/4;
-                st->energy_created_total -= st->energy_created_total/4;
-                if(releaseSem(sem_sm, 5) < 0){
-                    perror("releaseSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(releaseSem(sem_sm, 11) < 0){
-                    perror("releaseSem inibitore energy taked: ");
-                    exit(1);
-                }
+            if(energia_attuale > Energy_Threshold/2){
+                gravita_EXP = 2;
+            }else if(energia_attuale > Energy_Threshold / 4){
+                gravita_EXP = 4;
             }else if(energia_attuale > Energy_Threshold / 8){
-                if(reserveSem(sem_sm, 5) < 0){
-                    perror("reserveSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(reserveSem(sem_sm, 11) < 0){
-                    perror("reserveSem inibitore energy taked: ");
-                    exit(1);
-                }
-                st->energy_absorbed_inibitore += st->energy_created_total/4;
-                st->energy_created_total -= st->energy_created_total/4;
-                if(releaseSem(sem_sm, 5) < 0){
-                    perror("releaseSem inibitore energy total: ");
-                    exit(1);
-                }
-                if(releaseSem(sem_sm, 11) < 0){
-                    perror("releaseSem inibitore energy taked: ");
-                    exit(1);
-                }
+                gravita_EXP = 6;
             }else if(energia_attuale > Energy_Threshold / 12){
+                gravita_EXP = 8;
+            }
+            else{
+                gravita_EXP = 0;
+            }
+            if(gravita_EXP != 0){
                 if(reserveSem(sem_sm, 5) < 0){
-                    perror("reserveSem inibitore energy total: ");
-                    exit(1);
-                }
+                        perror("reserveSem inibitore energy total: ");
+                        exit(1);
+                    }
                 if(reserveSem(sem_sm, 11) < 0){
-                    perror("reserveSem inibitore energy taked: ");
-                    exit(1);
+                        perror("reserveSem inibitore energy taked: ");
+                        exit(1);
                 }
-                st->energy_absorbed_inibitore += st->energy_created_total/8;
-                st->energy_created_total -= st->energy_created_total/8;
+                st->energy_absorbed_inibitore += st->energy_created_total/gravita_EXP;
+                st->energy_created_total -= st->energy_created_total/gravita_EXP;
                 if(releaseSem(sem_sm, 5) < 0){
                     perror("releaseSem inibitore energy total: ");
                     exit(1);
@@ -225,14 +157,15 @@ int main(int argc, char* argv[]){
 
             }
 
+            //Gestione MELTDOWN
+
             curr_process = st->current_atoms;
-            //Possibile cambiare le soglie, ma l'avanzata degli atomi si rallenta di brutto a 3500 circa.
+            //In base alla quantita di atomi attivi, faccio consumare una quantita sempre più alta di atomi all'inibitore
             if(curr_process > max_c_process/2){ //Mangio fra 2000 e 3000 atomi
                 gravita_MTD = (rand() % (3000-2000))+2000;
             }else if(curr_process > max_c_process/4){ //Mangio fra 1500 e 2300 atomi
                 gravita_MTD = (rand() % (2300-1500))+1500;
             }else if(curr_process > max_c_process/5){//Mangio fra i 1200 e i 1800 atomi
-                //gravita_MTD = 1500;
                 gravita_MTD = (rand() % (1800-1200))+1200;
             }else if(curr_process > max_c_process/6){ // Mangio fra 1100 e 1600 atomi
                 gravita_MTD = (rand() % (1600-1100))+1100;
@@ -246,25 +179,20 @@ int main(int argc, char* argv[]){
                 gravita_MTD = (rand() % (120-40))+40;
             }else if(curr_process > max_c_process/20){ //Mangio fra i 20 e gli 80 atomi
                 gravita_MTD = (rand() % (80-20))+20;
-            }else if(curr_process > max_c_process/30){ //Mangio fra 0 e 50 atomi
+            }else if(curr_process > max_c_process/30){ //Mangio fra 1 e 50 atomi
                 gravita_MTD = rand() % 50+1;
             }else{ //Non mangio atomi
                 gravita_MTD = 0;
             }
             if(gravita_MTD != 0){ //INVIO MESSAGGI SOLO SE LA QUANTITÀ DI ATOMI DA UCCIDERE È MAGGIORE DI ZERO
-		    mex.mex = gravita_MTD;
-		    printf("\nUccido %d Atomi\n", mex.mex);
-		    msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
+                mex.mex = gravita_MTD;
+                msgsnd(msgid_meltdown, &mex, sizeof(mex.mex), 0);
             }
         }
 
         if(nanosleep(&remaining, &request) < 0){
             perror("nanosleep inibitore: ");
-            //exit(1);
+            exit(1);
         }
     }
 }
-//Inizialmente dorme per tot secondi
-//Inibitore controlla statistiche ogni mezzo secondo
-//Se inibitore è attivo, controlla se le statistiche siano rispettate
-//Se si raggiunge meltdown, ferma l'attivatore
