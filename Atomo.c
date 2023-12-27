@@ -156,7 +156,7 @@ int main(int argc, char* argv[]){
                 }
                 //controllo messaggio di inbitore -> se tipo 1 -> atomo muore
 
-                if(st_atom->n >= 0){
+                if(st_atom->n > 0){
                     if(reserveSem(sem_sm, 9) < 0){
                         perror("reserveSem sm scrap_ls atomo: ");
                         exit(1);
