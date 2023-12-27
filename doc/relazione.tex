@@ -66,38 +66,55 @@
     \item Email: \href{mailto:nicola.noto@edu.unito.it}{nicola.noto@edu.unito.it}
 \end{itemize}
 
-\section{Presentazione del Progetto}
-Il Progetto presentato nell'anno 23/24 richiede la simulazione di una reazione a catena di atomi.
-Questa reazione a catena è gestita attraverso l'utilizzo di processi differenti per alimentare e allo stesso tempo mantenere sotto controllo la reazione (questi processi verranno visti in dettaglio nelle sezioni successive).
+
+\section{Scelte progettuali generali}
+
+Alla base dello sviluppo del progetto vi è la preparazione di diverse struct
+contenenti diversi attributi che serviranno a descrivere lo stato degli attori in
+gioco nel corso della simulazione e tenere traccia di ogni dato per garantire il
+rapporto della situazione tramite le stampe periodiche e quella finale.
+
+\section{Descrizione funzionalità dei vari processi}
+
+\subsection{Master}
+
+Partendo dal Master, uno dei suoi tanti compiti è quello di gestire delle variabili di stato dell'inibitore. Questi handler controlleranno che i segnali provenienti dall'inibitore in caso di blackout, explode o meltdown, vengano gestiti correttamente.
+Successivamente, nella funzione principale, andrà a dichiarare tutte le variabili di enviroment necessarie a far funzionare il progetto.
+Oltre a gestire ciò, il master si occupa della creazione delle varie struct:
+\begin{itemize}
+\item L'allocazione in memoria condivisa della struct stats, in cui scrivere in parametri 
+ successivamente letti da file, così da poter condividere i parametri generali con tutti gli altri processi.
+\item La struct per la nanosleep, che aiuterà a impostare dei delay di nanosecondi per evitare problemi come meltdowns etc...
+\item Una struct per gestione dei semafori.
+\item l'allocazione in memoria condivisa di una struct che useranno solamente gli atomi.
+\end{itemize}
+Inoltre, avremo la gestione per la rimozione dei file ipc, in modo da mantenere le comunicazioni tra i vari processi pulite e senza interferenze.
+Successivamente inizializzerà anche una coda di messaggi che sarà necessaria per comunicare.
+Finite le struct, passerà a creare i vari processi come l'Attivatore, l'Alimentatore, l'Inibitore e i processi Atomo. Una volta controllato di aver tutti i processi correttamente sincronizzati, darà il via alla simulazione. Ogni secondo il master si occuperà delle stampe dei valori dei processi, e in caso di explode (Creazione di più energia rispetto a quella gestibile) o di blackout (in caso di energia insufficiente rispetto a quella che si vuole prelevare), terminerà la simulazione, premurandosi di eliminare i restanti processi zombie se presenti e chiudere i vari semafori creati.
+
+\subsection{Atomo}
+Il processo Atomo inizierà ricevendo tutte le informazioni che gli servono per capire quando ha il via libera per forkare e tenendosi in contatto con l'inibitore che limiterà il numero di scissioni e assorbirà parte dell'energia rilasciata nella creazione dei nuovi atomi.
+Se l'atomo viene creato dal master, dovrà aspettare lo start dal semaforo, in caso contrario, l'alimentatore setterà la variabile "bypass" a un numero diverso da 0 che permetterà all'atomo di ignorare il semaforo e procedere alla scissione. Dopo il via libera dal semaforo, verrà calcolato il numero atomico, numero che dovrà essere compreso nella soglia impostata precedentemente. Se non risulta, procederà all'eliminazione immediata dell'atomo.
+Dopo il controllo del numero atomico, proseguirà alla fork dell'atomo, incrementando il contatore degli atomi. Il tutto avrà un apposito caso di meltdown.
+Dopo la fork, riceveremo il messaggio di controllo dall'inibitore che, se di tipo 1, procederà all'eliminazione dell'atomo.
+
+\subsection{Alimentatore}
+Il processo Alimentatore dichiarerà degli "step" in nanosecondi, durante i quali verranno creati n atomi, cioè il "combustibile", e definirà il numero atomico minimo e massimo che un atomo deve avere per essere creato, controllando che non sia uguale al numero atomico del master, evitando conflitti. Per comunicare con il processo Atomo, creeremo un buffer in cui immetteremo il numero atomico. Prima della creazione dell'atomo successivo, controlla di non avere dei processi figli zombie, eliminandoli se trovati. Se non trova nulla, passerà alla creazione dei nuovi n atomi, con controllo di un eventuale meltdown.
+
+\subsection{Attivatore}
+L'attivatore ha un compito semplice quanto fondamentale, comunicare agli n atomi la necessità di una scissione. La prima istruzione eseguita, infatti, è la gestione/rimozione dei file risorse ipc, in modo da ottenere una giusta comunicazione.Successivamente, inizializzerà il numero di attivazioni che deve eseguire, sincronizzandosi con i restandi processi e riservando il semaforo in memoria per trasmettere il numero di attivazioni da eseguire.
 
 
-\section{Settaggio Variabili per l'Esecuzione}
-Per il corretto utilizzo della simulazione, questa ha bisogno di alcune variabili che sono definite dall'utente prima della partenza della stessa.
-Il metodo che abbiamo scelto sfrutta le variabili d'ambiente di Linux, abbiamo infatti untilizzato lo script
-\begin{lstlisting}
-    env-setter.sh
-\end{lstlisting}
-per definire tutte le variabili necessarie, queste sono raggiunte dal processo Master attraverso la chiama alla funzione
-\begin{lstlisting}
-    getenv()
-\end{lstlisting}
-
-\section{Processo Master}
-
-\section{Processo Atomo}
-
-\section{Processo Alimentatore}
-
-\section{Processo Attivatore}
-
-\section{Processo Inibitore}
-
-
-\section{Soluzione Attuata}
-Soluzione finale utilizzata
-
-\section{Note Finali}
-
+\subsection{Inibitore}
+Infine, il processo Inibitore ha il compito di:
+\begin{itemize}
+\item Assorbire parte dell'energia prodotta dalla scissione degli atomi, andando a ridurre la quantità di energia sprigionata.
+\item Limitare il numero di scissioni rendendo l'operazione probabilistica.
+\end{itemize}
+Tramite delle variabili di stato, l'inibitore invierà messaggi all'attivatore, comunicando se deve procedere normalmente oppure dicendogli di fermarsi. 
+Tramite queste variabili di stato, si andrà ad accendere o a spegnere l'inibitore, limitandone il funzionamento.
+Create le struct necessarie, come quella per la shared memory, andremo a stabilire la coda di messaggi per comunicare con il processo Atomo (tramite id).
+Dopo aver sincronizzato l'inibitore con i restanti processi, tramite semaforo, andremo a gestire l'explode tramite un while e una serie di if, prelevando e rilasciando energia, controllando di non superare il limite massimo impostato, e gestiremo anche il meltdown che, tramite una serie di if, andrà a "mangiare" un tot di Atomi in base al numero corrente di processi. Se non sono presenti Atomi da mangiare, non invierà messaggi.
 
 \section{Link al Progetto}
     \begin{itemize}

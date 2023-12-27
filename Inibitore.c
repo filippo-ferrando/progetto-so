@@ -44,8 +44,6 @@ int main(int argc, char* argv[]){
     int curr_process;
     int actual_energy = 0;
     int gravita_MTD = 0, gravita_EXP = 0;
-    int min_MTD = 0, min_EXP = 0; //cancella, inutle
-    int max_MTD = 0, max_EXP = 0; //cancella, inutle
 
     int energia_attuale = 0;
     int energia_ls = 0;
